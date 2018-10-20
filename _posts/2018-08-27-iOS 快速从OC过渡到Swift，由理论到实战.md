@@ -12,18 +12,18 @@ tags:
     - 应用开发
 ---
 
-##引言
+## 引言
 
 本文旨在帮助开发者快速从OC开发过渡到Swift开发，挑选了一些比较浅显的但是比较常用的Swift语法特性，在介绍的过程中，通常会拿OC中的语言特性作比较，让大家更好的注意到Swift的不同。
 另外需要说明的是，笔者也仅仅是刚刚接触Swift不久，如果有说的不对的地方，还望指正，这里贴出[Swift中文翻译地址](http://www.swift51.com/swift4.0/index.html)，方便大家可以深入了解Swift。
 
-##Swift简介
+## Swift简介
 
 Swift是一门开发iOS、macOC、watchOS和tvOS应用的新语言，在初期，为了让OC开发者快速的过渡到Swift开发，Swift继承了很多C、OC的语法特性，但是随着Swift的不断完善，已经慢慢自称一体，不仅保留了OC的很多语言特性，还借鉴了很多语言，如C#、Java、Python等。
 Swift包含了C和OC上所有的基础数据类型：Int、Double、Float、Bool、String，集合类型：Array、Set和Dictionary，除此之外，Swift增加了OC中没有的高阶数据类型如元组（Tuple），元组方便我们接收或传递一组数据，或返回多个值而不必使用结构体、类等。
 另外，Swift新增了可选（Optional）类型，可选表示有值或者没有值，需要注意的是，Swift中，不同类型的数据类型是不能够相互操作的，如Int？和Int属于不同类型，又如Int和Float。
 
-##Swift基础
+## Swift基础
 
 **1、常量let和变量var**
 
@@ -1177,7 +1177,7 @@ for thing in things {
 }
 ```
 
-##OC和Swift混编
+## OC和Swift混编
 
 a. Swift 和 OC 的映射关系
 
@@ -1302,7 +1302,7 @@ class AViewController: UIViewController {
 上面介绍了在 OC 工程中创建 Swift 文件，其实在 Swift 工程中创建 OC 文件是类似的，大家可以尝试一下。
 
 
-##Swift中的'宏'和工具类
+## Swift中的'宏'和工具类
 
 通过前面的学习，我们已经对 Swift 的语法，和 OC 进行混编等知识有了一定的了解，下面演示一些在项目中可能使用到的工具类。
 
@@ -1489,7 +1489,7 @@ extension String {
 
 以上介绍了几种工具类的创建方式，相信大家进过基础一节过后，都能看懂。
 
-##实战篇
+## 实战篇
 
 在这一节中，我们利用之前的测试项目简单的演示Swift下如何搭建页面、和OC进行数据传递，其中会涉及到自定义数据模型、延迟加载、类型转换、协议、协议代理模式、弱引用、闭包、闭包传值、检测释放等等，希望能都帮助到第一次接触 Swift 的小白们。
 
@@ -1748,7 +1748,7 @@ ctrl.returnModelBlock = ^(AVTableModel * model) {
 ![桥接内容](https://img-blog.csdn.net/20180827220806744?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
 
 
-##声明
+## 声明
 
 上述部分内容参考自：
 [Swift 4.0 教程 - Swift编程](http://www.swift51.com/swift4.0/)
