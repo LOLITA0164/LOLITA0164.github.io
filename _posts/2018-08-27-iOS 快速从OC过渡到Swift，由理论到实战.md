@@ -8,6 +8,8 @@ header-img: img/post-bg-cook.jpg
 catalog: true
 tags:
     - iOS
+    - swift
+    - 应用开发
 ---
 
 ##引言##
