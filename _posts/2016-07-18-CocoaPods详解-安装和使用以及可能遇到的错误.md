@@ -4,7 +4,7 @@ title:      CocoaPods详解：安装和使用以及可能遇到的错误
 subtitle:   新手快速入门
 date:       2016-07-18
 author:     LOLITA0164
-header-img: img/post-bg-cook.jpg
+header-img: img/post-bg-project.jpg
 catalog: true
 tags:
     - iOS

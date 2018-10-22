@@ -4,7 +4,7 @@ title:      iOS 快速从OC过渡到Swift
 subtitle:   由理论到实战，手把手的教你
 date:       2018-08-27
 author:     LOLITA0164
-header-img: img/post-bg-cook.jpg
+header-img: img/post-bg-swift.jpg
 catalog: true
 tags:
     - iOS
