@@ -139,6 +139,7 @@ pod update
 ## 可能遇到的错误
 
 1、确保你所pod的三方库和你的target系统版本匹配；
+
 2、发生一下错误
 ```
 [!] The `test [Debug]` target overrides the `OTHER_LDFLAGS` build setting defined in `Pods/Target Support Files/Pods/Pods.debug.xcconfig'. This can lead to problems with the CocoaPods installation
