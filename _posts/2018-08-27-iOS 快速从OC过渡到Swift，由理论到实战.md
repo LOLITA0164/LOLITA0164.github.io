@@ -9,7 +9,6 @@ catalog: true
 tags:
     - iOS
     - swift
-    - 应用开发
 ---
 
 ## 引言
@@ -25,7 +24,7 @@ Swift包含了C和OC上所有的基础数据类型：Int、Double、Float、Bool
 
 ## Swift基础
 
-**1、常量let和变量var**
+### 1、常量let和变量var
 
 常量一旦设定就不可改变，变量则值可变。常量使用`let`来声明，变量使用`var`表示。
 
@@ -46,7 +45,7 @@ var Str: String = "string"
 let/var name: type = value
 ```
 
-**2、输出print**
+### 2、输出print
 你可以使用`print`函数输出常量和变量，输完换行。Swift取消了旧版的`println`输出方法，另外，如果你想使用OC中的NSLog也是可以的。`print(, separator: , terminator: )`中，将terminator参数设为空字符`""`则可以不进行换行。
 Swift使用[字符串插值](http://www.swift51.com/swift4.0/chapter2/03_Strings_and_Characters.html#string_interpolation)（string interpolation）的方式将常量或变量当作占位符加入到长字符串中，我们可以借此拼接长字符。
 
@@ -56,7 +55,7 @@ var value2 = 345
 print("value1 = \(value1) , value2 = \(value2)")
 // 输出： value1 = 123 , value2 = 345
 ```
-**3、数据类型（布尔值、数组、字典、元组、可选类型）**
+### 3、数据类型（布尔值、数组、字典、元组、可选类型）
 
 a. 布尔值
 
@@ -264,7 +263,7 @@ AnyObject : 代表任务 class 类型，无论 class 是否谁的子类又或者
 AnyClass : AnyObject的别名，和AnyObject一样
 
 
-**4、几种运算符**
+### 4、几种运算符
 
 这里提及一些和OC中不一样的几种运算符。
 
@@ -345,7 +344,7 @@ Int8 型整数能容纳的最小值是 -128，以二进制表示即 10000000。�
 
 另外，在新版Swift中，++ 和 -- 运算符被取消，因此 i++ 这种形式的累加需要换成 i += 1 这种形式。
 
-**5、控制语句**
+### 5、控制语句
 
 Swift提供了多种控制流语句，包括while循环、if、guard、switch、跳转break、continue等等。在Swift中，for-in循环可以更简单的遍历数组、字段、区间、字符等序列类型，不同于C和OC，Swift在新版本中取消了C的for条件循环，即`for var i=0;i<a;i++`这种形式。值得一提的是，Swift中的switch语句比C中更加强大，case可以匹配不同的模式，包括范围匹配，元组和特定类型匹配，甚至是使用where来描述更多约束的情况。详情可以看官网翻译的[控制流。](http://www.swift51.com/swift4.0/chapter2/05_Control_Flow.html#control_transfer_statements)
 
@@ -368,7 +367,7 @@ greet("LOLITA0164")	// 输出 LOLITA0164
 
 因此guard可以用来控制语句不满足条件时提前结束。
 
-**6、函数和闭包**
+### 6、函数和闭包
 
 a. 函数
 
@@ -572,7 +571,7 @@ func someFunctionWithEscapingClosure(completionHandler: @escaping () -> Void) {
 }
 ```
 
-**7、类和结构体**
+### 7、类和结构体
 
 和OC不同，Swift并不要求你为自定义的类去创建独立接口（.h）和实现（.m）文件。你所需要做的是一个单一文件定义一个类或者结构体，系统将会自动生成面向其他代码的外部接口。
 
@@ -665,7 +664,7 @@ p = nil     // 输出 deinit...
 
 > 在Swift中，许多基本类型，诸如String、Array和Dictionary类型都是以结构体的形式实现，这意味着被赋值给新的常量或变量，或传入函数、方法中时，他们的值会被拷贝。在OC中，则相反，它们是类实现，引用传递。
 
-**8、属性**
+### 8、属性
 
 在OC中，除了属性之外，还可以使用成员变量作为属性值的后端存储。而在Swift中，把这些理论统一使用属性来实现。
 
@@ -750,7 +749,7 @@ d. 类型属性
 
 注：存储型的类型属性必须指定默认值。
 
-**9、枚举**
+### 9、枚举
 
 枚举为一组相关的值定义了一个共同的类型。
 
@@ -873,7 +872,7 @@ case let .HSB(h, s, b):
 ```
 
 
-**10、扩展**
+### 10、扩展
 
 在Swift中，扩展可以为一个已知的类、结构体、枚举或者协议类型添加新的功能，这个扩展和OC的分类类似，OC中的分类需要名字的，而Swift只需使用 `extension` 关键字加 需要扩展的类型即可。另外，但是要比OC的分类功能强大，它可以：
 
@@ -930,7 +929,7 @@ color = UIColor.rgb(0, 0, 255)
 ```
 对于其他的扩展功能，大家自行尝试。
 
-**11、协议**
+### 11、协议
 
 协议，用来约束某个类型而定义的某些特定的任务或者功能方法、属性等，类、结构体、枚举都可以遵循和实现协议。关于[协议](http://www.swift51.com/swift4.0/chapter2/22_Protocols.html)，可以在官方翻译中查询跟多的详细介绍。
 
@@ -998,7 +997,7 @@ b. 可选协议
 
 在我们定义的 sayHello 协议中，我们定义了一个可选要求的 run 方法，在 Person类和Dog类中都可以选择不实现。
 
-**12、[循环引用](http://www.swift51.com/swift4.0/chapter2/16_Automatic_Reference_Counting.html#strong_reference_cycles_between_class_instances)**
+### 12、[循环引用](http://www.swift51.com/swift4.0/chapter2/16_Automatic_Reference_Counting.html#strong_reference_cycles_between_class_instances)
 
 Swift中采用的是ARC来管理内存，这中ARC和OC中的ARC非常相似，因此Swift中的循环引用和OC中的循环引用非常类似。这里就只介绍循环引用的解决办法。
 
@@ -1066,7 +1065,7 @@ c. 弱引用和无主引用的选择
 > 相比于当前实例，其他实例有更短的生命周期时，使用弱引用；相反的，当其他实例有相同的或者更长生命周期时，请使用无主引用。
 
 
-**13、类型转换**
+### 13、类型转换
 
 关于类型转换，在实际开发中经常使用，想当初笔者没有什么正确的文档参考，更具xcode的提示，加之自己多次尝试，才摸出点门道来。
 
@@ -1213,7 +1212,7 @@ b. Objc 调用 Swift
 
 当我们在项目中第一次添加不同语言的文件时，Xcode就会询问你是否创建桥接文件，你只需要点击"YES"，Xcode就可以帮你完成桥接配置（注意：第二次不会提示你，即使你删除来桥接文件）。
 
-![桥接文件](https://img-blog.csdn.net/20180827162708556?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![桥接文件](https://ws2.sinaimg.cn/large/006tNbRwgy1fwib4ted8tj30vc07cwg9.jpg)
 
 这份桥接文件是 Swift 调用 OC 文件的时，导入 OC 头文件使用的。在桥接文件中你可看到以下内容。
 
@@ -1225,13 +1224,13 @@ b. Objc 调用 Swift
 
 我们可以创建"项目名称-Bridging-Header"一个 .h 文件作为桥接文件，然后为项目配置此文件的路径。
 
-![配置文件](https://img-blog.csdn.net/20180827164759921?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![配置文件](https://ws3.sinaimg.cn/large/006tNbRwgy1fwib5dbhvqj31kw0hjah3.jpg)
 
 此文件是存放 Swift 使用的 OC 头文件，此小节先不管它。
 
 在 OC 调用 Swift 情况下，是通过Swift生成的一个头文件实现的，这个头文件是编译器自动完成的，它会将你在项目是到的 Swift 文件自动映射称 OC 语法，其他并不需要开发关注，该文件名称为 "项目名称-Swift"，你可以在 Build Settings 里搜索 Swift  可以看到：
 
-![Swift配置环境](https://img-blog.csdn.net/20180827165941240?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![Swift配置环境](https://ws3.sinaimg.cn/large/006tNbRwgy1fwib5uqmncj317c1am7co.jpg)
 
 这里还可以配置其他 Swift 的选项，如语言版本等。
 
@@ -1297,7 +1296,7 @@ class AViewController: UIViewController {
 }
 ```
 
-![演示](https://img-blog.csdn.net/20180827174302503?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![演示](https://ws4.sinaimg.cn/large/006tNbRwgy1fwib7q0l70j307t0dwjre.jpg)
 
 上面介绍了在 OC 工程中创建 Swift 文件，其实在 Swift 工程中创建 OC 文件是类似的，大家可以尝试一下。
 
@@ -1679,7 +1678,7 @@ class AViewController: UIViewController,UITableViewDelegate,UITableViewDataSourc
 }
 ```
 
-![当前样式](https://img-blog.csdn.net/20180827215154143?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![当前样式](https://ws3.sinaimg.cn/large/006tNbRwgy1fwib88uaw9j308c0etq3q.jpg)
 
 d. 将数据回传到 OC 页面
 
@@ -1741,11 +1740,11 @@ ctrl.returnModelBlock = ^(AVTableModel * model) {
 
 演示：
 
-![演示](https://img-blog.csdn.net/20180827221055912?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![演示](https://ws1.sinaimg.cn/large/006tNbRwgy1fwib8tas86j307u0dwt8p.jpg)
 
 注：由于 OC 和 Swift 混编是由桥接文件实现桥接的，因此并不是你写完一个public属性在OC中就能够使用的，在使用前，你应该手动 command + B 进行编译完成桥接文件的内容。你可以使用 command + 点击TestDemo-Swift.h文件 进入桥接文件查看桥接内容。
 
-![桥接内容](https://img-blog.csdn.net/20180827220806744?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0xPTElUQTAxNjQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70)
+![桥接内容](https://ws3.sinaimg.cn/large/006tNbRwgy1fwib918w95j30rs0lrjws.jpg)
 
 
 ## 声明
