@@ -142,9 +142,9 @@ pod update
 2、发生一下错误
 ```
 [!] The `test [Debug]` target overrides the `OTHER_LDFLAGS` build setting defined in `Pods/Target Support Files/Pods/Pods.debug.xcconfig'. This can lead to problems with the CocoaPods installation
-```
 - Use the `$(inherited)` flag, or
 - Remove the build settings from the target.
+```
 
 产生此警告的原因是项目 Target 中的一些设置，CocoaPods 也做了默认的设置，如果两个设置结果不一致，就会造成问题。
 
