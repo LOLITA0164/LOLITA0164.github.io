@@ -81,9 +81,10 @@ tags:
 
  1. 新建Podfile文件 
  目录结构如下：
-	 ![这里写图片描述](http://img.blog.csdn.net/20160718154321450)
+![目录结构](https://img-blog.csdn.net/20160718154321450)
+
  2. 编辑Podfile文件，以AFNetworking，JSONKit，Reachability为例，编辑后的内容如下：
- ![这里写图片描述](http://img.blog.csdn.net/20160718153913462)
+ ![这里写图片描述](https://img.blog.csdn.net/20160718153913462)
  3. 使用cocoa pods下载和配置三方
  在**终端**执行以下命令：
 > //先进入cocoapodsDemo项目文件
@@ -94,15 +95,15 @@ tags:
 > 
 > 安装的结果如下：
 > 
-> ![这里写图片描述](http://img.blog.csdn.net/20160718150112589)
+> ![这里写图片描述](https://img.blog.csdn.net/20160718150112589)
 
  4. 重新打开我们的项目
 
-> ![安装后的目录](http://img.blog.csdn.net/20160718150603805)
+> ![安装后的目录](https://img.blog.csdn.net/20160718150603805)
 > 
 > 对比之前，目录中多出了三个文件，此时我们如果运行cocoapodsDemo.xcodeproj,会出现错误，我们打开cocoapods为我们产生的workspace文件：
 > 
-> ![这里写图片描述](http://img.blog.csdn.net/20160718154410639)
+> ![这里写图片描述](https://img.blog.csdn.net/20160718154410639)
 > 
 > cocoapodsDemo是我们原来建的项目工程
 > 
@@ -110,10 +111,10 @@ tags:
 > 
 > 1.第三方库已经被编译成静态库供的工程使用
 > 
-> ![这里写图片描述](http://img.blog.csdn.net/20160718151621711)
+> ![这里写图片描述](https://img.blog.csdn.net/20160718151621711)
 > 
 > 2.CocoaPods将所有的第三方库以target的方式组成一个名为Pods的工程里，我们的工程和第三方库所在的工程Pods由一个新生成的workspace管理
-> ![这里写图片描述](http://img.blog.csdn.net/20160718151910392)
+> ![这里写图片描述](https://img.blog.csdn.net/20160718151910392)
 > 
 
 **补充说明**
