@@ -40,7 +40,7 @@ tags:
 因为Ruby的默认源使用的是https://rubygems.org/，国内访问这个网址会有问题，这里需要使用换成国内的taobao镜像服务器，并且因为iOS9.0只支持HTTPS，所以以前不能用了将这里改成HTTPS即可，替换方式如下：
 
 > $gem sources --remove https://rubygems.org/
-
+>
 > $gem sources -a https://ruby.taobao.org/
 
 验证是否替换成功：
@@ -62,25 +62,25 @@ tags:
 
 	 - 升级Ruby
 > //查看当前版本
-
+>
 > $ ruby -v  
 >  
 >  //列出各个版本信息
-
+>
 > $ rvm list known rubies 
 > 
 > //安装对应版本
-
+>
 > $rvm install x.x.x
 
  - **安装第三方框架**
 > //会根据Podfile.lock文件记录的版本号, 去下载对应版本的第三方框架
-
+>
 >$ pod install
 
  - **升级第三方框架**
 > //如果Podfile中, 第三方框架没有明确声明版本号, 就会自动将第三方框架升级到最新版本, 并且更新Podfile.lock文件
-
+>
 > $ pod update
 
 ## 使用CocoaPads
