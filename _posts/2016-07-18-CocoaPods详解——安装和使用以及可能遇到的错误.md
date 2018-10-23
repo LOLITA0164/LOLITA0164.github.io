@@ -4,14 +4,14 @@ title:      CocoaPods详解：安装和使用以及可能遇到的错误
 subtitle:   新手快速入门
 date:       2016-07-18
 author:     LOLITA0164
-header-img: img/post-bg-cook.jpg
+header-img: img/post-bg-project.jpg
 catalog: true
 tags:
     - iOS
     - 项目管理
 ---
 
-## 一、CocoaPods是什么
+## CocoaPods是什么
 
  1. 问题
  
@@ -21,7 +21,7 @@ tags:
  CocoaPods是类库管理工具，IOS开发过程中遇到的两个问题——依赖库的重复性和三方框架的更新，使用cocoaPods管理工具，只需要一行命令就可以完全解决，并且绝大部分有名的开源类库，都支持CocoaPods。因此，在开发IOS应用时，掌握CocoaPods的使用是必不可少的基本技能。
 使用CocoaPods所生成的workspace能够让我们能方便直观的管理第三方开源库。
 
-## 二、安装CocoaPads
+## 安装CocoaPads
 
 安装CocoaPods需要Ruby环境，OS X系统默认的已经可以运行Ruby，因此我们只需要执行以下命令来安装CocoaPods：
 
@@ -76,7 +76,7 @@ tags:
 > //如果Podfile中, 第三方框架没有明确声明版本号, 就会自动将第三方框架升级到最新版本, 并且更新Podfile.lock文件
 > $ pod update
 
-## 三、使用CocoaPads
+## 使用CocoaPads
 以下演示CocoaPads的使用过程，我们先新建一个工程：cocoapodsDemo。
 
  1. 新建Podfile文件 
