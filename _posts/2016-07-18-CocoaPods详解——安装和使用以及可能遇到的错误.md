@@ -68,7 +68,6 @@ $curl -L get.rvm.io | bash -s stable
 $source ~/.bashrc
 $source ~/.bash_profile
 ```
-
 升级Ruby
 ```
 //查看当前版本
@@ -93,7 +92,6 @@ $ pod update
 
 ## 使用CocoaPads
 以下演示CocoaPads的使用过程，我们先新建一个工程：cocoapodsDemo。
-
 1. 新建Podfile文件 
 目录结构如下：
 ![这里写图片描述](https://ws2.sinaimg.cn/large/006tNbRwgy1fwi8hacmc2j30ku0bqwfe.jpg)
@@ -107,29 +105,18 @@ $ cd desktop/cocoapodsDemo
 //执行安装命令
 $ pod install
 ```
-
 安装的结果如下：
-
 ![这里写图片描述](https://ws4.sinaimg.cn/large/006tNbRwgy1fwi8idtefmj30v80aitba.jpg)
-
  4. 重新打开我们的项目
-
 ![安装后的目录](https://ws4.sinaimg.cn/large/006tNbRwgy1fwi8inkcwtj30z60dydhp.jpg)
-
 对比之前，目录中多出了三个文件，此时我们如果运行cocoapodsDemo.xcodeproj,会出现错误，我们打开cocoapods为我们产生的workspace文件：
-
 ![这里写图片描述](https://ws1.sinaimg.cn/large/006tNbRwgy1fwi8j0r17hj309q0ammxs.jpg)
-
 cocoapodsDemo是我们原来建的项目工程
-
 需要说明的是：
-
 1.第三方库已经被编译成静态库供的工程使用
 ![这里写图片描述](https://ws4.sinaimg.cn/large/006tNbRwgy1fwi8jc1me3j31k207a75q.jpg)
-
 2.CocoaPods将所有的第三方库以target的方式组成一个名为Pods的工程里，我们的工程和第三方库所在的工程Pods由一个新生成的workspace管理
 ![这里写图片描述](https://ws1.sinaimg.cn/large/006tNbRwgy1fwi8jiurmyj30em05smxh.jpg)
-
 
 **补充说明**
 
@@ -138,24 +125,20 @@ cocoapodsDemo是我们原来建的项目工程
 ```
 $pod install
 ```
-
 - 获取三方框架信息
 在终端执行以下命令即可搜索第三方框架信息,如
 ```
 pod search AFNetworking
 ```
-
 - 更新框架
 ```
 pod update
 ```
 
 
-
 ## 可能遇到的错误
 
 1、确保你所pod的三方库和你的target系统版本匹配；
-
 2、发生一下错误
 ```
 [!] The `test [Debug]` target overrides the `OTHER_LDFLAGS` build setting defined in `Pods/Target Support Files/Pods/Pods.debug.xcconfig'. This can lead to problems with the CocoaPods installation
