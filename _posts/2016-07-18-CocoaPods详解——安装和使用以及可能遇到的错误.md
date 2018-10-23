@@ -40,7 +40,7 @@ $ pod setup
  
 **安装中出现的问题**
 
- -  **执行sudo gem install cocoapods  没反应**
+-  **执行sudo gem install cocoapods  没反应**
 因为Ruby的默认源使用的是https://rubygems.org/， 国内访问这个网址会有问题，这里需要使用换成国内的taobao镜像服务器，并且因为iOS9.0只支持HTTPS，所以以前不能用了将这里改成HTTPS即可，替换方式如下：
 
 ```
@@ -54,10 +54,10 @@ $gem sources -a https://ruby.taobao.org/
 gem sources -l
 ```
 
- - **执行pod setup出错,**
+- **执行pod setup出错,**
 出现 Setting up CocoaPods master repo，我第一次初始化pod时，出现了这个错误,未能执行成功，联想到之前的换源问题，我试着将https://ruby.taobao.org/ 替换成了 http://ruby.taobao.org/， 最终成功初始化。
  
- - **Ruby的版本过低**
+- **Ruby的版本过低**
 出现active support requires Ruby version >=2.2.0字样（目前Mac系统自带的事1.8.7版本），此时需要更新Ruby版本，至少2.2以上，这里推荐使用RVM（Ruby Version Manager，Ruby版本管理器）来升级Ruby。
 安装RVM
 ```
@@ -79,13 +79,13 @@ $ rvm list known rubies
 $rvm install x.x.x
 ```
 
- - **安装第三方框架**
+- **安装第三方框架**
 ```
 //会根据Podfile.lock文件记录的版本号, 去下载对应版本的第三方框架
 $ pod install
 ```
 
- - **升级第三方框架**
+- **升级第三方框架**
 ```
 //如果Podfile中, 第三方框架没有明确声明版本号, 就会自动将第三方框架升级到最新版本, 并且更新Podfile.lock文件 
 $ pod update
