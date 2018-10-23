@@ -4,14 +4,14 @@ title:      CocoaPods详解：安装和使用以及可能遇到的错误
 subtitle:   新手快速入门
 date:       2016-07-18
 author:     LOLITA0164
-header-img: img/post-bg-project.jpg
+header-img: img/post-bg-cook.jpg
 catalog: true
 tags:
     - iOS
     - 项目管理
 ---
 
-##一、CocoaPods是什么
+## 一、CocoaPods是什么
 
  1. 问题
  
@@ -21,7 +21,7 @@ tags:
  CocoaPods是类库管理工具，IOS开发过程中遇到的两个问题——依赖库的重复性和三方框架的更新，使用cocoaPods管理工具，只需要一行命令就可以完全解决，并且绝大部分有名的开源类库，都支持CocoaPods。因此，在开发IOS应用时，掌握CocoaPods的使用是必不可少的基本技能。
 使用CocoaPods所生成的workspace能够让我们能方便直观的管理第三方开源库。
 
-##二、安装CocoaPads
+## 二、安装CocoaPads
 
 安装CocoaPods需要Ruby环境，OS X系统默认的已经可以运行Ruby，因此我们只需要执行以下命令来安装CocoaPods：
 
@@ -76,15 +76,14 @@ tags:
 > //如果Podfile中, 第三方框架没有明确声明版本号, 就会自动将第三方框架升级到最新版本, 并且更新Podfile.lock文件
 > $ pod update
 
-##三、使用CocoaPads
+## 三、使用CocoaPads
 以下演示CocoaPads的使用过程，我们先新建一个工程：cocoapodsDemo。
 
  1. 新建Podfile文件 
  目录结构如下：
-![目录结构](https://img-blog.csdn.net/20160718154321450)
-
+	 ![这里写图片描述](http://img.blog.csdn.net/20160718154321450)
  2. 编辑Podfile文件，以AFNetworking，JSONKit，Reachability为例，编辑后的内容如下：
- ![这里写图片描述](https://img.blog.csdn.net/20160718153913462)
+ ![这里写图片描述](http://img.blog.csdn.net/20160718153913462)
  3. 使用cocoa pods下载和配置三方
  在**终端**执行以下命令：
 > //先进入cocoapodsDemo项目文件
@@ -95,15 +94,15 @@ tags:
 > 
 > 安装的结果如下：
 > 
-> ![这里写图片描述](https://img.blog.csdn.net/20160718150112589)
+> ![这里写图片描述](http://img.blog.csdn.net/20160718150112589)
 
  4. 重新打开我们的项目
 
-> ![安装后的目录](https://img.blog.csdn.net/20160718150603805)
+> ![安装后的目录](http://img.blog.csdn.net/20160718150603805)
 > 
 > 对比之前，目录中多出了三个文件，此时我们如果运行cocoapodsDemo.xcodeproj,会出现错误，我们打开cocoapods为我们产生的workspace文件：
 > 
-> ![这里写图片描述](https://img.blog.csdn.net/20160718154410639)
+> ![这里写图片描述](http://img.blog.csdn.net/20160718154410639)
 > 
 > cocoapodsDemo是我们原来建的项目工程
 > 
@@ -111,10 +110,10 @@ tags:
 > 
 > 1.第三方库已经被编译成静态库供的工程使用
 > 
-> ![这里写图片描述](https://img.blog.csdn.net/20160718151621711)
+> ![这里写图片描述](http://img.blog.csdn.net/20160718151621711)
 > 
 > 2.CocoaPods将所有的第三方库以target的方式组成一个名为Pods的工程里，我们的工程和第三方库所在的工程Pods由一个新生成的workspace管理
-> ![这里写图片描述](https://img.blog.csdn.net/20160718151910392)
+> ![这里写图片描述](http://img.blog.csdn.net/20160718151910392)
 > 
 
 **补充说明**
@@ -136,7 +135,7 @@ tags:
 
 
 
-##可能遇到的错误
+## 可能遇到的错误
 
 1、确保你所pod的三方库和你的target系统版本匹配；
 
