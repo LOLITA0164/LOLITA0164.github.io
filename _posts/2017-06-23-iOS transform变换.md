@@ -295,7 +295,7 @@ typedef struct CATransform3D {
 
 #### 初始
 
-![初始矩阵](https://ws4.sinaimg.cn/large/006tNbRwgy1fwq8y2cv7aj30gu09wdgj.jpg=30x30)
+![初始矩阵](https://ws4.sinaimg.cn/large/006tNbRwgy1fwq8y2cv7aj30gu09wdgj.jpg)
 
 
 #### 平移
@@ -388,11 +388,11 @@ CATransform3D CATransform3DRotate (CATransform3D t, CGFloat angle,
 
 最后对XoY平面进行投影，则最终看到的二维向量应该为:
 
-![结果](https://ws1.sinaimg.cn/large/006tNbRwgy1fwq9zmsi7nj308c03i747.jpg =100x50)
+![结果](https://ws1.sinaimg.cn/large/006tNbRwgy1fwq9zmsi7nj308c03i747.jpg)
 
 得到透视投影下的 x 坐标是
 
-![x](https://ws1.sinaimg.cn/large/006tNbRwgy1fwqc43ixnvj303u02qq2s.jpg =80x60)
+![x](https://ws1.sinaimg.cn/large/006tNbRwgy1fwqc43ixnvj303u02qq2s.jpg)
 
 
 ![](https://ws2.sinaimg.cn/large/006tNbRwgy1fwqcaxy4v4j314g17w1kz.jpg)
