@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      iOS CoreAnimation-CALayer介绍
+title:      iOS CALayer介绍
 subtitle:   介绍有关CALayer相关的基础知识及相关子类的使用
 date:       2018-11-19-iOS 
 author:     LOLITA0164
@@ -122,7 +122,7 @@ imageView.contentMode = UIViewContentModeScaleAspectFit;
 - kCAGravityResizeAspect
 - kCAGravityResizeAspectFill
 
-我们来试着修改一些图层的“填充模式”
+我们来试着修改一些图层的“填充模式”，在之前的代码基础上添加以下代码：
 
 ```
 // 设置填充模式
@@ -132,10 +132,172 @@ subLayer.contentsGravity = kCAGravityResizeAspect;
 ![效果图](https://ws1.sinaimg.cn/large/006tNbRwgy1fxd7voe0qwj30r60ew0sn.jpg)
 
 
+我们可以看到，相比于之前那种拉伸以填充整个图层的效果，新的填充模式似乎更好。
 
+#### contentsScale
 
+contentsScale 属性定义了寄宿图的像素尺寸和视图大小的比例，默认情况下它是一个值为1.0的浮点数。该属性其实属于支持高分辨率（Retina）屏幕机制的一部分。它用来判断在绘制图层的时候应该为寄宿图创建的空间大小，和需要显示的图片的拉伸度。如果 contentsScale 设置为1.0，表示每个点1个像素绘制图片，设置为2.0，则会以每个2个像素绘制图片，这就是我们的 Retina 屏幕。
 
+在 contentGravity 设置为非拉伸的模式下，我们来演示一下 contentsScale 的效果。
 
+首先我们来看一下 contentsScale 默认情况下的效果：
+
+```
+// 创建子图层
+CALayer* subLayer = [CALayer new];
+// 布局
+subLayer.frame = CGRectMake(0, 0, 150, 150);
+subLayer.position = self.view.center;
+// 设置颜色
+subLayer.backgroundColor = UIColor.groupTableViewBackgroundColor.CGColor;
+// 设置 contents
+subLayer.contents = (__bridge id)([UIImage imageNamed:@"snowman"].CGImage);
+// 设置填充模式
+subLayer.contentsGravity = kCAGravityCenter;
+// 设置 contentsScale
+subLayer.contentsScale = [UIScreen mainScreen].scale;
+// 将其放大，让其模糊来演示contentsScale
+subLayer.transform = CATransform3DMakeScale(3, 3, 0);
+// 添加到视图关联图层上
+[self.view.layer addSublayer:subLayer];
+```
+![效果图](https://ws3.sinaimg.cn/large/006tNbRwgy1fxdleaw9mgj30r60f2mxk.jpg)
+
+我们发现，图片边缘部分变得模糊不清，这由于拉伸一种因素在转换的时候丢失了。我们可以手动设置 contentsScale 的值。
+
+```
+// 创建子图层
+CALayer* subLayer = [CALayer new];
+// 布局
+subLayer.frame = CGRectMake(0, 0, 150, 150);
+subLayer.position = self.view.center;
+// 设置颜色
+subLayer.backgroundColor = UIColor.groupTableViewBackgroundColor.CGColor;
+// 设置 contents
+subLayer.contents = (__bridge id)([UIImage imageNamed:@"snowman"].CGImage);
+// 设置填充模式
+subLayer.contentsGravity = kCAGravityCenter;
+// 设置 contentsScale
+subLayer.contentsScale = 2;  // 一般设置为 [UIScreen mainScreen].scale，可根据设备自动调整
+// 将其放大，让其模糊来演示contentsScale
+subLayer.transform = CATransform3DMakeScale(3, 3, 0);
+// 添加到视图关联图层上
+[self.view.layer addSublayer:subLayer];
+```
+
+![效果图](https://ws3.sinaimg.cn/large/006tNbRwgy1fxdlkoiwhzj30qu0fejrg.jpg)
+
+这样我们的图片在 Retina 设备上显示正常。
+
+另外，在我们使用 CATextLayer 时，我们会发现文字变成像素形式，这个时候就需要你将 contentsScale 设置为比较合适的值。
+
+#### maskToBounds
+
+maskToBounds 可以切除超出图层的部分，UIView中类似的有 clipsToBounds。
+
+#### contentsRect
+
+contentsRect 可以让我们选择图片的一个子域。它是采用单位坐标来指定区域的，默认情况下， contentsRect 是 {0, 0, 1, 1}，即显示整个寄宿图，如果我们指定小一点的区域时，图片就会被裁减显示。
+
+![显示小区域](https://ws2.sinaimg.cn/large/006tNbRwgy1fxdm0v4bduj30u60i4gm5.jpg)
+
+这样我们来裁剪左上角的区域作为填充图，代码修改如下：
+
+```
+// 创建子图层
+CALayer* subLayer = [CALayer new];
+// 布局
+subLayer.frame = CGRectMake(0, 0, 150, 150);
+subLayer.position = self.view.center;
+// 设置颜色
+subLayer.backgroundColor = UIColor.groupTableViewBackgroundColor.CGColor;
+// 设置 contents
+subLayer.contents = (__bridge id)([UIImage imageNamed:@"snowman"].CGImage);
+// 设置 contentsRect
+subLayer.contentsRect = CGRectMake(0, 0, 0.5, 0.5);
+// 添加到视图关联图层上
+[self.view.layer addSublayer:subLayer];
+```
+
+![效果图](https://ws1.sinaimg.cn/large/006tNbRwgy1fxdm5c084rj30ru0eyglh.jpg)
+
+另外，我们利用 contentsRect 的特性一次载入拼合图，通过裁剪之后填充到不同图层中。这样做的好处是节省内存的使用、缩短载入时间、提高渲染性能等等。就像下面的情况：
+
+![拼合图](https://ws4.sinaimg.cn/large/006tNbRwgy1fxdm9j3sl7j30xo0h4wf2.jpg)
+
+经过裁剪之后，填充到不同的图层：
+
+![裁剪图层](https://ws2.sinaimg.cn/large/006tNbRwgy1fxdmap6xakj30vy0hg3zi.jpg)
+
+#### contentsCenter
+
+有时候，我们需要将图片进行局部拉伸，例如在社交软件中，我们需要根据消息的文字信息将控件拉伸到合适的大小，如果该文本控件设置了背景图片，可能因为拉伸的原因产生了差异效果，这不是我们想看到的。contentsCenter 是一个 CGRect，它定义了一个固定的边框和一个在图层上可拉伸的区域。
+
+默认情况下，contentsCenter 是{0, 0, 1, 1}。如果我们设置为{0.25, 0.25, 0.5, 0.5}，拉伸的效果就如下面：
+
+![{0.25, 0.25, 0.5, 0.5}效果](https://ws3.sinaimg.cn/large/006tNbRwgy1fxdmkvsdg6j30ys0eeq3m.jpg)
+
+这样当被拉伸之后，效果如下：
+
+![](https://ws2.sinaimg.cn/large/006tNbRwgy1fxdmox3vtij30x00g0aah.jpg)
+
+在 Interface Builder 中，可以在下图中控制 contentsCenter 属性
+
+![Interface Builder](https://ws1.sinaimg.cn/large/006tNbRwgy1fxdmrigpvmj30e60limxj.jpg)
+
+#### 绘制图形
+
+除了给图层填充寄宿图，我们可以直接使用图层绘制图形。在 UIView 中，我们可以重写 `drawRect:` 来绘制图形（开发者可以调用setNeedsDisplay方法触发)。实质上该方法封装了 CALayer 的绘制方法。
+
+在 CALayer 中，有一个 delegate 属性，你可以在代理方法中完成 CALayer 的绘制。你可以调用 `-display` 触发代理方法。
+
+```
+- (void)displayLayer:(CALayerCALayer *)layer;
+```
+该方法是默认的代理方法。你可以在这里设置 contents 属性。
+
+如果不实现该代理方法，系统会调用下面的方法：
+
+```
+- (void)drawLayer:(CALayer *)layer inContext:(CGContextRef)ctx;
+```
+
+该方法传递了一个绘制的图形上下文环境，你可以使用它完成图层的绘制工作。
+
+```
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // 创建子图层
+    CALayer* subLayer = [CALayer new];
+    // 布局
+    subLayer.frame = CGRectMake(0, 0, 150, 150);
+    subLayer.position = self.view.center;
+    // 设置颜色
+    subLayer.backgroundColor = UIColor.groupTableViewBackgroundColor.CGColor;
+    // 设置代理
+    subLayer.delegate = self;
+    // 添加到视图关联图层上
+    [self.view.layer addSublayer:subLayer];
+    // 触发 CALayer 的绘制
+    [subLayer display];
+}
+
+// 完成绘制的代理方法
+-(void)drawLayer:(CALayer *)layer inContext:(CGContextRef)ctx{
+    CGContextSetLineWidth(ctx, 10.0f);
+    CGContextSetStrokeColorWithColor(ctx, [UIColor redColor].CGColor);
+    CGContextStrokeEllipseInRect(ctx, layer.bounds);
+}
+```
+
+![使用代理完成图形绘制](https://ws2.sinaimg.cn/large/006tNbRwgy1fxdnnvzn4nj30r40f8glj.jpg)
+
+需要注意的事情：
+
+- 我们需要显示的调用 `-display` 触发重绘
+- CALayerDelegate 的代理方法并没有对超出图层的绘制内容提供绘制支持，因此即使调用 masksToBounds 为 NO时，依旧会被裁减掉
+
+一般来说，除非你创建了一个单独的图层，你几乎没有机会用到 CALayerDelegate 协议。因为当 UIView 创建了它的宿主图层时，它就会自动地把图层的 delegate 设置为它自己，并提供了一个-displayLayer:的实现，你所需要做的就是实现 UIView 的 `-drawRect:` 方法。
 
 
 ## 图层几何学概念
