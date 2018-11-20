@@ -652,6 +652,10 @@ CALayer 蒙板图层真正厉害的地方在于蒙板图不局限于静态图。
 
 ![mask图层动画](https://ws3.sinaimg.cn/large/006tNbRwgy1fxet5f45ymg30ov0dwni7.gif)
 
+你可以利用 mask 属性做很多有趣的事情，例如你可以将文字（CATextLayer，或者UILabel.layer）加到彩色图层上，从而产生渐变效果的文字。
+
+![渐变文字](https://ws2.sinaimg.cn/large/006tNbRwgy1fxeuvshhqfj304s018742.jpg)
+
 ## 图层的变换
 
 在 UIView 中，有一个 transform 属性，它是一个 CGAffineTransform 类型，可以用来对视图做二维空间做旋转、缩放和平移的变换。 
