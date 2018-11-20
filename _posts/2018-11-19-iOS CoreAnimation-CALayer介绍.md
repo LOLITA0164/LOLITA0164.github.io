@@ -602,6 +602,7 @@ CALayer 有一个属性 mask，这个属性本身就是一个 CALayer 类型，�
 }
 
 // 寄宿图为图片
+
 -(CALayer *)maskLayer1{
     if (_maskLayer1==nil) {
         _maskLayer1 = [CALayer new];
@@ -613,6 +614,7 @@ CALayer 有一个属性 mask，这个属性本身就是一个 CALayer 类型，�
 }
 
 // 寄宿图为自定义图形
+
 -(CAShapeLayer *)maskLayer2{
     if (_maskLayer2==nil) {
         _maskLayer2 = [CAShapeLayer new];
