@@ -299,10 +299,285 @@ subLayer.contentsRect = CGRectMake(0, 0, 0.5, 0.5);
 
 一般来说，除非你创建了一个单独的图层，你几乎没有机会用到 CALayerDelegate 协议。因为当 UIView 创建了它的宿主图层时，它就会自动地把图层的 delegate 设置为它自己，并提供了一个-displayLayer:的实现，你所需要做的就是实现 UIView 的 `-drawRect:` 方法。
 
-
 ## 图层几何学概念
 
-## 图层效果
+#### 布局
+
+UIView 有三个比较重要的布局属性：frame，bounds 和 center，CALayer 对应地叫做 frame，bounds 和 position。为了能清楚区分，图层用了“position”，视图用了“center”，但是他们都代表同样的值。
+frame 代表了图层的外部坐标（也就是在父图层上占据的空间），bounds 是内部坐标（{0, 0}通常是图层的左上角），center 和 position 都代表了相对于父图层 anchorPoint 所在的位置。
+
+![UIView 和 CALayer 的坐标系](https://ws4.sinaimg.cn/large/006tNbRwgy1fxdqa445nej312w0qrgmh.jpg)
+
+当操纵视图的 frame，实际上是在改变位于视图下方 CALayer 的frame，不能够独立于图层之外改变视图的 frame。
+
+对于视图或者图层来说，frame 并不是一个非常清晰的属性，它其实是一个虚拟属性，是根据 bounds，position 和 transform 计算而来，所以当其中任何一个值发生改变，frame都会变化。相反，改变frame的值同样会影响到他们当中的值。
+
+当对图层做变换的时候，比如旋转或者缩放，frame 实际上代表了覆盖在图层旋转之后的整个轴对齐的矩形区域，也就是说 frame 的宽高可能和 bounds 的宽高不再一致了。
+
+```
+CGAffineTransform transform = CGAffineTransformMakeRotation(M_PI_4);
+view.transform = transform;
+```
+
+![将视图旋转45度后的布局](https://ws1.sinaimg.cn/large/006tNbRwgy1fxdqc4pp45j314j0s4wg0.jpg)
+
+#### 锚点 
+
+anchorPoint 可以看作是移动图层的把柄，默认情况下位于图层的中点，当你旋转视图时，都是围绕 anchorPoint 来进行旋转的，及在视图中心点做旋转。你可以通过移动 anchorPoint 来改变 frame 以及 旋转的中心点，比如你将它置于图层 frame 的左上角，这时图层会向右下角的 position 方向移动，此时虽然依旧是围绕 anchorPoint 来进行旋转，但是已经是视图的左上角了。
+
+![改变anchorPoint的效果](https://ws4.sinaimg.cn/large/006tNbRwgy1fxe9qt206lj30u00x8404.jpg)
+
+#### 坐标系
+
+和视图一样，图层在图层树当中也是相对于父图层按层级关系放置，如果父图层发生了移动，它的所有子图层也会跟着移动。但是有时候你需要知道一个图层的绝对位置，或者是相对于另一个图层的位置，而不是它当前父图层的位置。
+
+CALayer给不同坐标系之间的图层转换提供了一些工具类方法：
+
+```
+- (CGPoint)convertPoint:(CGPoint)point fromLayer:(CALayer *)layer;
+- (CGPoint)convertPoint:(CGPoint)point toLayer:(CALayer *)layer;
+- (CGRect)convertRect:(CGRect)rect fromLayer:(CALayer *)layer;
+- (CGRect)convertRect:(CGRect)rect toLayer:(CALayer *)layer;
+```
+
+**Z坐标轴**
+
+和 UIView 严格的二维坐标系不同，CALayer存在于一个三维空间当中。除了我们已经讨论过的 position 和 anchorPoint 属性之外， CALayer 还有另外两个属性，zPosition 和 anchorPointZ ，二者都是在Z轴上描述图层位置的浮点类型。
+
+zPosition 最实用的功能就是改变图层的显示顺序了。通过增加图层的zPosition ，就可以把图层向相机方向前置，于是它就在小于它的zPosition 值的图层的前面。
+
+和 UIView 添加视图一样，先添加视图数上的会被后面的视图覆盖住，图层也是同样的道理，后绘制的图层将会遮盖住之前的图层。
+
+```
+CALayer* subLayer = [CALayer new];
+subLayer.frame = CGRectMake(0, 0, 150, 150);
+subLayer.position = self.view.layer.position;
+subLayer.backgroundColor = UIColor.redColor.CGColor;
+// 先 添加到视图关联图层上
+[self.view.layer addSublayer:subLayer];
+CALayer* subLayer2 = [CALayer new];
+subLayer2.frame = CGRectMake(0, 0, 150, 150);
+subLayer2.position = CGPointMake(self.view.layer.position.x+50, self.view.layer.position.y+50);
+subLayer2.backgroundColor = UIColor.blueColor.CGColor;
+// 后
+[self.view.layer addSublayer:subLayer2];
+```
+
+![后绘制的图层将覆盖之前的图层](https://ws3.sinaimg.cn/large/006tNbRwgy1fxegbzhtonj30qs0esa9v.jpg)
+
+不过，类似 UIView，你可以使用一下方法调整视图的层级关系：
+
+```
+- (void)insertSublayer:(CALayer *)layer atIndex:(unsigned)idx;
+- (void)insertSublayer:(CALayer *)layer below:(nullable CALayer *)sibling;
+- (void)insertSublayer:(CALayer *)layer above:(nullable CALayer *)sibling;
+```
+
+当然，我们为了显示 zPosition 的作用，我们不调用上述的方法，我们来修改一下图层的 zPosition 值，其他的代码不做任何变化：
+
+```
+subLayer.zPosition = 1.0;
+```
+
+![设置zPosition后的图层关系](https://ws2.sinaimg.cn/large/006tNbRwgy1fxegfsune2j30qu0ewdfn.jpg)
+
+#### Hit Testing
+
+如前面所有，CALayer 和 UIView 最大的区别就是，CALayer 并不关心任何响应链事件，所以不能直接处理触摸事件或者手势，但是在实际开发过程中，我们使用了图层绘制图形并且需要处理用户的触摸事件，那该怎么办呢？好在 CALayer 有一系列的方法帮你处理触摸事件：`-containsPoint:` 和 `-hitTest:`。
+
+`-containsPoint:`
+
+该方法可以判断一个点是否在图层的 frame 范围内，如果在就返回 YES，反之为 NO。
+
+判断测试的核心代码如下：
+
+```
+-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    CGPoint point = [[touches anyObject] locationInView:self.view];
+    // 将落点转换到红色背景的图层的层级上，以判断是否被包含
+    point = [self.subLayer convertPoint:point fromLayer:self.view.layer];
+    if ([self.subLayer containsPoint:point]) {
+        [[[UIAlertView alloc] initWithTitle:@"在红色图层中"
+                                    message:nil
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    }
+    else{
+        [[[UIAlertView alloc] initWithTitle:@"未在红色图层中"
+                                    message:nil
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    }
+}
+```
+
+![触摸测试结果](https://ws2.sinaimg.cn/large/006tNbRwgy1fxehop4fv7j30qw0eu3yh.jpg)
+
+`-hitTest:`
+
+`-hitTest:` 同样接受一个点，但是它返回的是包含这个点的图层，而不是 BOOL 类型。如果这个点在被检测的父类图层之外，则返回 nil。
+
+我们修改后的代码如下：
+
+```
+-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    CGPoint point = [[touches anyObject] locationInView:self.view];
+    // 将落点转换到红色背景的图层上，以判断是否被包含
+    point = [self.subLayer convertPoint:point fromLayer:self.view.layer];
+    CALayer *layer = [self.view.layer hitTest:point];
+    if (layer == self.subLayer) {
+        [[[UIAlertView alloc] initWithTitle:@"在红色图层中"
+                                          message:nil
+                                         delegate:nil
+                                cancelButtonTitle:@"OK"
+                                otherButtonTitles:nil] show];
+    }else{
+
+        [[[UIAlertView alloc] initWithTitle:@"未在红色图层中"
+                                    message:nil
+                                   delegate:nil
+                          cancelButtonTitle:@"OK"
+                          otherButtonTitles:nil] show];
+    }
+}
+```
+
+![触摸测试结果](https://ws3.sinaimg.cn/large/006tNbRwgy1fxehuz2zl6j30qq0f03yh.jpg)
+
+
+## 特殊效果
+
+在我们开发过程中，想必经常遇到过设置视图的圆角，边框，阴影等特殊效果吧，实际上这些都是都过设置 CALayer 来达到效果的。如果大家都比较熟悉，就可以跳过这一节。
+
+#### 圆角和裁剪
+
+conrnerRadius 和 masksToBounds
+
+CALayer 有一个叫做 conrnerRadius 的属性控制着图层角的曲率。它是一个浮点数，默认为0（为0的时候就是直角），但是你可以把它设置成任意值。默认情况下，这个曲率值只影响背景颜色而不影响背景图片或是子图层。不过，如果把 masksToBounds 设置成 YES 的话，图层里面的所有东西都会被截取。
+
+示例：
+
+```
+// 设置圆角
+self.bgLayer.cornerRadius = 20;
+
+// 设置圆角和裁剪
+self.bgLayer2.cornerRadius = 20;
+self.bgLayer2.masksToBounds = YES;
+```
+
+![圆角和裁剪](https://ws2.sinaimg.cn/large/006tNbRwgy1fxeiv4weipj30rg0fajr8.jpg)
+
+#### 边框和边框颜色
+
+CALayer 另外两个非常有用属性就是 borderWidth 和 borderColor。二者共同定义了图层边的绘制样式。
+
+我们修改代码如下：
+
+```
+// 设置圆角
+self.bgLayer.cornerRadius = 20;
+// 设置边框和边框颜色
+self.bgLayer.borderWidth = 5;
+self.bgLayer.borderColor = UIColor.brownColor.CGColor;
+
+// 设置圆角和裁剪
+self.bgLayer2.cornerRadius = 20;
+self.bgLayer2.masksToBounds = YES;
+// 设置边框和边框颜色
+self.bgLayer2.borderWidth = 5;
+self.bgLayer2.borderColor = UIColor.brownColor.CGColor;
+```
+
+![添加边框和边框颜色](https://ws3.sinaimg.cn/large/006tNbRwgy1fxej0e0dr8j30r20fk745.jpg)
+
+#### 阴影
+
+**shadowOpacity、shadowColor、shadowOffset 和 shadowRadius**
+
+CALayer 中的常用到的四个属性 shadowOpacity、shadowColor、shadowOffset 和 shadowRadius。其中：
+
+- shadowOpacity 控制图层阴影的透明度
+- shadowColor 阴影的颜色
+- shadowOffset 阴影的方向和距离
+- shadowRadius 阴影的的模糊度
+
+那么我们来给上个例子中的图层添加上阴影部分的效果：
+
+```
+self.bgLayer.shadowOpacity = 1;
+self.bgLayer.shadowColor = UIColor.brownColor.CGColor;
+self.bgLayer.shadowOffset = CGSizeMake(0, -3);
+self.bgLayer.shadowRadius = 10;
+```
+
+![阴影效果](https://ws1.sinaimg.cn/large/006tNbRwgy1fxejj8nid2j30rc0eyt8s.jpg)
+
+我们看到，左边图层被我们设置阴影了效果。
+
+需要说明的是，shadowOffset 是一个 CGSize，宽度控制阴影横向位移，高度控制纵向位移，默认值是{0.-3}，即阴影相对Y轴向上位移3个点。shadowRadius 值越大阴影越模糊，默认值为3。
+
+**寄宿图的阴影**
+
+另外，图层的阴影是根据内容的形状产生，而不是父图层的外形或者圆角，我们从上图就可以看出来，蓝色图层是内容部分，未裁剪的部分也有阴影效果。
+
+我们来验证一下，将填充内容改为寄宿图：
+
+```
+self.bgLayer.shadowOpacity = 1;
+self.bgLayer.shadowColor = UIColor.blackColor.CGColor;
+self.bgLayer.shadowOffset = CGSizeMake(0, 3);
+self.bgLayer.shadowRadius = 10;
+self.bgLayer.contentsGravity = kCAGravityResizeAspect;
+self.bgLayer.contents = (__bridge id)([UIImage imageNamed:@"snowman"].CGImage);
+```
+注意：背景填充色也是寄宿图中的一部分，这里需要注意将填充色去掉。
+
+![阴影是根据寄宿图的轮廓来确定](https://ws1.sinaimg.cn/large/006tNbRwgy1fxekiuq1fpj30pu0eowek.jpg)
+
+**阴影的裁剪**
+
+我们来给右边的有裁剪的图层添加阴影。
+
+```
+// 左边图层
+self.bgLayer.shadowOpacity = 1;
+self.bgLayer.shadowColor = UIColor.brownColor.CGColor;
+self.bgLayer.shadowOffset = CGSizeMake(0, -3);
+self.bgLayer.shadowRadius = 10;
+// 右边图层
+self.bgLayer2.shadowOpacity = 1;
+self.bgLayer2.shadowColor = UIColor.brownColor.CGColor;
+self.bgLayer2.shadowOffset = CGSizeMake(0, -3);
+self.bgLayer2.shadowRadius = 10;
+```
+
+![masksToBounds裁剪掉了阴影效果](https://ws1.sinaimg.cn/large/006tNbRwgy1fxejj8nid2j30rc0eyt8s.jpg)
+
+我们发现，右边视图并没有阴影效果。而两个图层的唯一区别就是左边未做 裁剪，即 masksToBounds 设置为 YES。这是由于阴影通常是在图层的边界之外，而 masksToBounds 则会将超出图层边界的部分裁剪掉，因此不会出现阴影部分。
+
+那如果我们需要裁剪掉超出部分，也需要设置阴影该怎么办呢？那呢，我们就需要额外新增加一个 frame 之一的图层作为其阴影层，修改如下：
+
+```
+// 添加阴影层
+[self.view.layer addSublayer:self.bgShadowLayer];
+// 将图层添加到阴影层上
+[self.bgShadowLayer addSublayer:self.bgLayer2];
+self.bgShadowLayer.cornerRadius = self.bgLayer2.cornerRadius;
+self.bgShadowLayer.shadowOpacity = 1;
+self.bgShadowLayer.shadowColor = UIColor.brownColor.CGColor;
+self.bgShadowLayer.shadowOffset = CGSizeMake(0, -3);
+self.bgShadowLayer.shadowRadius = 10;
+```
+
+![masksToBounds下的阴影效果](https://ws2.sinaimg.cn/large/006tNbRwgy1fxel1q6jepj30qe0eumxc.jpg)
+
+#### mask蒙版遮罩
+
+
+
 
 ## 图层的变换
 
