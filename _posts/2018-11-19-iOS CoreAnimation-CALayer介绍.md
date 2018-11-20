@@ -539,7 +539,7 @@ self.bgLayer.contents = (__bridge id)([UIImage imageNamed:@"snowman"].CGImage);
 
 **阴影的裁剪**
 
-我们来给右边的有裁剪的图层添加阴影。
+回到之前的例子中，我们看到在两个图层中，左边图层被我们设置上了阴影效果，接下来我们尝试给右边的有裁剪的图层添加阴影：
 
 ```
 // 左边图层
@@ -556,15 +556,16 @@ self.bgLayer2.shadowRadius = 10;
 
 ![masksToBounds裁剪掉了阴影效果](https://ws1.sinaimg.cn/large/006tNbRwgy1fxejj8nid2j30rc0eyt8s.jpg)
 
-我们发现，右边视图并没有阴影效果。而两个图层的唯一区别就是左边未做 裁剪，即 masksToBounds 设置为 YES。这是由于阴影通常是在图层的边界之外，而 masksToBounds 则会将超出图层边界的部分裁剪掉，因此不会出现阴影部分。
+我们发现，右边视图并没有阴影效果。而两个图层的唯一区别就是左边未做裁剪（即 masksToBounds 设置为 YES）。那么为什么会产生这种效果差异呢？这是由于阴影通常是在图层的边界之外，而 masksToBounds 则会将超出图层边界的部分裁剪掉，因此阴影部分实际上是被裁减掉了，所以我们看不到阴影部分。
 
-那如果我们需要裁剪掉超出部分，也需要设置阴影该怎么办呢？那呢，我们就需要额外新增加一个 frame 之一的图层作为其阴影层，修改如下：
+那如果我们需要裁剪掉超出部分，也需要设置阴影该怎么办呢？这时候，我们就需要额外新增加一个 frame 一致的图层作为其阴影层，以便让用户能够看到该图层的阴影（实际上是下层的阴影），我们代码修改如下：
 
 ```
 // 添加阴影层
 [self.view.layer addSublayer:self.bgShadowLayer];
 // 将图层添加到阴影层上
 [self.bgShadowLayer addSublayer:self.bgLayer2];
+// 阴影层做阴影部分的设置
 self.bgShadowLayer.cornerRadius = self.bgLayer2.cornerRadius;
 self.bgShadowLayer.shadowOpacity = 1;
 self.bgShadowLayer.shadowColor = UIColor.brownColor.CGColor;
@@ -574,13 +575,111 @@ self.bgShadowLayer.shadowRadius = 10;
 
 ![masksToBounds下的阴影效果](https://ws2.sinaimg.cn/large/006tNbRwgy1fxel1q6jepj30qe0eumxc.jpg)
 
-#### mask蒙版遮罩
+#### mask蒙版/遮罩
 
+我们可以通过 masksToBounds 属性可以将图层沿边界裁剪图形，通过 cornerRadius 属性可以将图层设定一个圆角。但是如果我们希望展现的内容是一个不规则的形状，那该如何做呢？
 
+CALayer 有一个属性 mask，这个属性本身就是一个 CALayer 类型，它的内容轮廓定义了父图层的可见部分，其他部分则会被抛弃。
 
+![mask的效果](https://ws1.sinaimg.cn/large/006tNbRwgy1fxesuy2eqwj30xc0d83ys.jpg)
+
+下面我们演示一下，两种 mask 的效果，一种是采用图片，一种是自定义图形。
+
+```
+@interface ViewController ()
+@property (strong, nonatomic)CALayer* maskLayer1;
+@property (strong, nonatomic)CAShapeLayer* maskLayer2;
+
+@property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UIImageView *imageView1;
+@property (weak, nonatomic) IBOutlet UIImageView *imageView2;
+@end
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.imageView1.layer.mask = self.maskLayer1;
+    self.imageView2.layer.mask = self.maskLayer2;
+}
+
+// 寄宿图为图片
+-(CALayer *)maskLayer1{
+    if (_maskLayer1==nil) {
+        _maskLayer1 = [CALayer new];
+        _maskLayer1.frame = self.imageView.bounds;
+        UIImage* image = [UIImage imageNamed:@"clip"];
+        _maskLayer1.contents = (__bridge id)image.CGImage;
+    }
+    return _maskLayer1;
+}
+
+// 寄宿图为自定义图形
+-(CAShapeLayer *)maskLayer2{
+    if (_maskLayer2==nil) {
+        _maskLayer2 = [CAShapeLayer new];
+        _maskLayer2.frame = self.imageView.bounds;
+        UIBezierPath* path = [UIBezierPath bezierPathWithOvalInRect:_maskLayer1.bounds];
+        _maskLayer2.path = path.CGPath;
+    }
+    return _maskLayer2;
+}
+```
+
+![mask的效果](https://ws4.sinaimg.cn/large/006tNbRwgy1fxeszf9ohdj30qe0f43zi.jpg)
+
+CALayer 蒙板图层真正厉害的地方在于蒙板图不局限于静态图。任何有图层构成的都可以作为 mask 属性，这意味着你的蒙板可以通过代码甚至是动画实时生成。
+
+如果我们将上面的 mask 蒙板图层加上动画：
+
+```
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    self.imageView1.layer.mask = self.maskLayer1;
+    self.imageView2.layer.mask = self.maskLayer2;
+    
+    
+    CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+    animation.duration = 1.0f;
+    animation.toValue = @(M_PI);
+    animation.autoreverses = YES;
+    animation.repeatCount = HUGE_VALF;
+    [self.maskLayer1 addAnimation:animation forKey:@"animation"];
+    [self.maskLayer2 addAnimation:animation forKey:@"animation"];
+}
+```
+
+![mask图层动画](https://ws3.sinaimg.cn/large/006tNbRwgy1fxet5f45ymg30ov0dwni7.gif)
 
 ## 图层的变换
 
+在 UIView 中，有一个 transform 属性，它是一个 CGAffineTransform 类型，可以用来对视图做二维空间做旋转、缩放和平移的变换。 
+
+实际上，UIView 的 transform 只是封装了内部图层的变换，只不过 CALayer 做二维空间变换的属性叫做 affineTransform，而其属性 transform 是一个 CATransform3D 类型，可以将图层在三维空间变换效果。
+
+关于变换可以参考之前的一篇文章：[iOS transform变换
+](http://luoliang.online/2017/06/23/iOS-transform%E5%8F%98%E6%8D%A2/)，文章中介绍的 transform 是在 UIView 的基础上介绍的，不过没关系，原理是一样的，将 UIView 的 transform 改为 CALayer 的 affineTransform 属性即可。
+
 ## 子类图层
+
+#### CAShapeLayer
+
+#### CATextLayer
+
+#### CAGradientLayer
+
+#### CAReplicatorLayer
+
+#### CATransformLayer
+
+#### CAScrollLayer
+
+#### CATiledLayer
+
+#### CAEmitterLayer
+
+#### CAEAGLLayer
+
+#### AVPlayerLayer
+
 
 
