@@ -1,8 +1,8 @@
 ---
 layout:     post
 title:      iOS 动画篇
-subtitle:   CAAnimation And UIView动画
-date:       2017-07-04
+subtitle:   CAAnimation 动画
+date:       2018-11-15
 author:     LOLITA0164
 header-img: img/post-bg-animation.jpg
 catalog: true
@@ -10,6 +10,13 @@ tags:
     - iOS
     - 动画
 ---
+
+## 声明
+
+该篇文章的内容参考自 [iOS核心动画高级技巧](https://zsisme.gitbooks.io/ios-/content/index.html) 一文，非常感谢其作者和中文版的作者，让我能够相对系统的学习 CoreAnimation 的知识，我受益匪浅，再次感谢。
+
+如果有兴趣的小伙伴可以访问其网站，详细的，完整的学习 CoreAnimation。
+
 
 ## CAAnimation 篇
 
@@ -615,29 +622,6 @@ CALayer 有一个 `-renderInContext:` 方法，可以通过把它绘制到 Core 
         // 最后移除掉障眼法的图层
         [coverView removeFromSuperview];
     }];
-}-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
-    // 获取当前屏幕的截图
-    UIGraphicsBeginImageContextWithOptions(self.view.bounds.size, YES, 0.0);
-    [self.view.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *coverImage = UIGraphicsGetImageFromCurrentImageContext();
-    //insert snapshot view in front of this one
-    UIView *coverView = [[UIImageView alloc] initWithImage:coverImage];
-    coverView.frame = self.view.bounds;
-    // 将截图覆盖到当前视图上
-    [self.view addSubview:coverView];
-    // 为了演示过渡效果，我们修改一下当前视图的背景色，以区分之前的视图
-    CGFloat red = arc4random() / (CGFloat)INT_MAX;
-    CGFloat green = arc4random() / (CGFloat)INT_MAX;
-    CGFloat blue = arc4random() / (CGFloat)INT_MAX;
-    self.view.backgroundColor = [UIColor colorWithRed:red green:green blue:blue alpha:1.0];
-    // 执行过渡动画
-    [UIView animateWithDuration:0.75 animations:^{
-        CGAffineTransform transform = CGAffineTransformMakeScale(0.01, 1);
-        coverView.transform = transform;
-    } completion:^(BOOL finished) {
-        // 最后移除掉障眼法的图层
-        [coverView removeFromSuperview];
-    }];
 }
 ```
 
@@ -834,8 +818,6 @@ CAMediaTimingFunction 有一个叫做`-getControlPointAtIndex:values:`的方法�
 
 ![标准CAMediaTimingFunction缓冲曲线](https://ws2.sinaimg.cn/large/006tNbRwgy1fxkjsih2bbj314h0u0q4m.jpg)
 
-
-## UIView 动画
 
 ---
 
