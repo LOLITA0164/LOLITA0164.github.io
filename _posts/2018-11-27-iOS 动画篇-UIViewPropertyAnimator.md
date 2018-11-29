@@ -731,7 +731,7 @@ UIViewPropertyAnimator 类让我们能够精准的控制视图动画的每个细
 
 根据之前的问题，有几点建议：
 
-- 创建完动画器之后，请使用`-startAnimation`和`-startAnimation:`方法开启动画，或者直接使用`+ runningPropertyAnimatorWithDuration:delay:options:animations:completion:`
+- 创建完动画器之后，请使用`-startAnimation`和`-startAnimationAfterDelay:`方法开启动画，或者直接使用`+ runningPropertyAnimatorWithDuration:delay:options:animations:completion:`
 
 - 在`stopped`情况下，请配合`-finishAnimationAtPosition:`方法结束后续动画，而非其他方法
 
