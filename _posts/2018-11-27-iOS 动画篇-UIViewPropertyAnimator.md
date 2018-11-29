@@ -468,15 +468,21 @@ typedef NS_ENUM(NSInteger, UIViewAnimatingState)
 It is a programmer error to call this method while the state of the animator is set to UIViewAnimatingStateStopped.
 ```
 
+> ⚠️：11-29，以上结论基于10.3.2系统，但是笔者使用11以上的系统发现，结论和上述相反，却和官方文档一致，即动画器状态为`stopped`下，不能使用`-startAnimation`。这一点让我更加凌乱了，难道后面的系统修正了？
+
+
 - `-startAnimationAfterDelay:` 延迟后开始动画
 
-上面的开启动画一样的注意点同样适用。另外经测试发现，`-pauseAnimation`之后调用`-startAnimationAfterDelay:`会发生程序错误。
+上面的开启动画一样的注意点同样适用。(请注意上面 11-29 的说明)
+
+另外经测试发现，`-pauseAnimation`之后调用`-startAnimationAfterDelay:`会发生程序错误。
 
 - `-pauseAnimation` 暂停动画
 
 暂停动画后，可以使用`-startAnimation`方法重新恢复动画，另外你也可以使用协议`UIViewImplicitlyAnimating`中的`continueAnimationWithTimingParameters:durationFactor:`恢复动画。如果动画已经暂停，则再次调用`-pauseAnimation`不会执行任何操作。
 
 经测试发现如果动画器从未启动过，直接调用`-pauseAnimation`方法，如果紧接着调用`-startAnimation`或者`continueAnimationWithTimingParameters:durationFactor:`是无法恢复动画的，之间需要大于千分之一秒的时间，就像下面的情况：
+
 
 无法恢复动画的情况：
 
@@ -510,6 +516,8 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.002 * NSEC_PER_SEC))
 至于为什么会时这种情况，官方文档并未指出，或许只有苹果自己清楚吧。
 
 另外，官方文档指出动画器为`stopped`状态时，调用`-pauseAnimation`会出现程序错误，但并没有。
+
+> ⚠️：11-29，以上结论基于10.3.2系统，使用11以上的系统发现并不会出现【无法启动暂停动画】的情况，并且，动画器为`stopped`状态时，调用`-pauseAnimation`时，确实出现程序错误。
 
 - `-stopAnimation:` 停止动画
 
@@ -684,7 +692,7 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), 
 
 - 设置同一可动画属性
 
-`-addAnimations:`方法可以让我们添加多个属性动画块，那么，如果两个或多个动画需要同时改变相同的属性会发生什么呢？苹果才用的是“后者优先”原则。即：后天加的动画效果会覆盖之前的效果。但有趣的是，这将导致卡顿，因为需要组合新旧动画。在旧动画淡出的同时会隐约看见新动画。
+`-addAnimations:`方法可以让我们添加多个属性动画块，那么，如果两个或多个动画需要同时改变相同的属性会发生什么呢？苹果采用的是“后者优先”原则。即：后添加的动画效果会覆盖之前的动画效果。但有趣的是，这将导致卡顿，因为需要组合新旧动画，在旧动画淡出的同时会隐约看见新动画。
 
 示例：
 
