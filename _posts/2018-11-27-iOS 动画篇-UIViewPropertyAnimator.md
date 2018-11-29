@@ -521,9 +521,11 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.002 * NSEC_PER_SEC))
 
 - `-stopAnimation:` 停止动画
 
-需要注意的是，不可以在动画器状态为`stopped`的时候再调用该方法。下面的使用会发生程序错误：
+需要注意的是，不可以在动画器状态由`Active`转为为`stopped`的时候再调用该方法。下面的使用会发生程序错误：
 
 ![错误使用](https://ws1.sinaimg.cn/large/006tNbRwgy1fxoxz4b2h5j31to06m74p.jpg)
+
+上图中的调用`-pauseAnimation`将动画器转为`Active`也会出现错误。
 
 这一点，官方文档却并未提及。why？
 
@@ -544,10 +546,6 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.002 * NSEC_PER_SEC))
 - `state`动画器的状态
 
 - `running`动画的运行状态，支持KVO
-
-动画状态的变换以及停止动画和finishAnimationAtPosition，完成块的使用
-
-针对同一属性的动画
 
 #### 修改动画协议
 
@@ -721,6 +719,23 @@ UIViewPropertyAnimator* animator = [UIViewPropertyAnimator runningPropertyAnimat
 
 该示例中，视图的最初颜色为蓝色，在第一个动画块中，我们将其设置为红色，后又设置为黄色。在该动画运行过程中，我们发现，视图立刻被设置为红色，然后由红色渐变为黄色。因此，在多个动画块中设置同一个动画属性并不可控，我们应该尽可能的避免这种情况的出现。
 
+---
+
+## 总结
+
+UIViewPropertyAnimator 类让我们能够精准的控制视图动画的每个细节。我们可以使用该类的示例完成各种动画的设置，中途修改动画，甚至可以便捷的完成交互性的动画，这彻底改变了我们设置视图动画的习惯，这些改变令人惊喜万分。
+
+在进阶篇中，我们发现了很多异常的情况，并且在不同的系统上有着不同的表现，甚至是完全相反的情况，这一点让人非常的疑惑，笔者猜想可能是苹果在 iOS11 系统之后改变了 UIViewPropertyAnimator 的一些实现细节部分，导致了前后不一致的情况，但是在这种情况下，想要使用该类需要异常谨慎。
+
+但是，如果不能够因噎废食，如果我们开发过程中能够注意到这些异常的情况，避免这些异常操作，UIViewPropertyAnimator 不失为一个较为良好的动画类。
+
+根据之前的问题，有几点建议：
+
+- 创建完动画器之后，请使用`-startAnimation`和`-startAnimation:`方法开启动画，或者直接使用`+ runningPropertyAnimatorWithDuration:delay:options:animations:completion:`
+
+- 在`stopped`情况下，请配合`-finishAnimationAtPosition:`方法结束后续动画，而非其他方法
+
+- 在暂停动画的情况下，请使用`-startAnimation`和`-continueAnimationWithTimingParameters:durationFactor:`方法恢复动画，可能的话，请保证动画是由运行中暂停的，或者延迟大于千分之秒的时间恢复动画
 
 
 
