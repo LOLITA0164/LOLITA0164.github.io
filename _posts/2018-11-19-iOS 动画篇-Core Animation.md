@@ -2,7 +2,7 @@
 layout:     post
 title:      iOS 动画篇 - Core Animation
 subtitle:   CAAnimation 动画 
-date:       2018-11-15
+date:       2018-11-19
 author:     LOLITA0164
 header-img: img/post-bg-animation.jpg
 catalog: true

@@ -2,7 +2,7 @@
 layout:     post
 title:      iOS CALayer介绍
 subtitle:   介绍有关CALayer相关的基础知识及相关子类的使用
-date:       2018-11-19-iOS 
+date:       2018-11-15-iOS 
 author:     LOLITA0164
 header-img: img/post-bg-layer.jpg
 catalog: true
