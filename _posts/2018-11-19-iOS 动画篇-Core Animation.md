@@ -821,6 +821,18 @@ CAMediaTimingFunction 有一个叫做`-getControlPointAtIndex:values:`的方法�
 
 ---
 
+## 相关阅读
+
+- [iOS 动画篇 - Core Animation](http://luoliang.online/2018/11/19/iOS-%E5%8A%A8%E7%94%BB%E7%AF%87-Core-Animation/)
+
+- [iOS 动画篇 - UIKit动画（一）](http://luoliang.online/2018/11/27/iOS-%E5%8A%A8%E7%94%BB%E7%AF%87-UIKit%E5%8A%A8%E7%94%BB/)
+
+- [iOS 动画篇 - UIKit动画（二）](http://luoliang.online/2018/11/27/iOS-%E5%8A%A8%E7%94%BB%E7%AF%87-UIViewPropertyAnimator/)
+
+- [iOS动画篇 - pop动画库](http://luoliang.online/2018/11/27/iOS-%E5%8A%A8%E7%94%BB%E7%AF%87-pop%E5%8A%A8%E7%94%BB%E5%BA%93/)
+
+---
+
 2018-11-15 新编
 
 
