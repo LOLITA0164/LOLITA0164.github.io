@@ -11,8 +11,6 @@ tags:
     - 滤镜
 ---
 
-![高斯模糊](https://ws1.sinaimg.cn/large/006tNc79gy1fzgg9mx2avj30p30b9gln.jpg)
-
 ## 简介
 
 Core Image 是一种图像处理和分析技术，可为静态和视频图像提供高性能处理。 使用许多内置图像过滤器来处理图像并通过链接过滤器来构建复杂效果。
