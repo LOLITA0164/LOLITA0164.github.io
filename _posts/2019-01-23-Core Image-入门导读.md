@@ -2,9 +2,9 @@
 layout:     post
 title:      Core Image - 入门导读
 subtitle:   关于图片滤镜的简单介绍，快速上手
-date:       2018-12-26
+date:       2019-01-23
 author:     LOLITA0164
-header-img: img/post-bg-coreImage.jpg
+header-img: img/post-bg-coreImage.png
 catalog: true
 tags: 
     - Core Image
