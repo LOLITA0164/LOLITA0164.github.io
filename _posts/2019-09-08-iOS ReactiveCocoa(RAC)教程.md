@@ -13,14 +13,14 @@ tags:
 [官方文档](https://www.raywenderlich.com/2493-reactivecocoa-tutorial-the-definitive-introduction-part-1-2)
 [ReactiveCocoa](https://github.com/ReactiveCocoa/ReactiveCocoa)
 
-##第一部分:【基础教程】
+## 第一部分:【基础教程】
 
 **1.0 简介**
 
 作为iOS开发人员，我们所编写的代码几乎都是对某些事件的响应，如按钮点击、收到网络消息、属性更改（KVC键值观察）或者通过 CoreLacation 更改用户位置等等。但是，这些事件都以不同的方式进行传递，如actions、代理、KVO、回调块、通知等等多种形式，虽然灵活多样，但也同时增加了代码的复杂性。
 
 [[ReactiveCocoa](https://github.com/ReactiveCocoa/ReactiveCocoa)
-](https://github.com/ReactiveCocoa/ReactiveCocoa) 则定义了事件的标准接口，并且可以任意的使用一组基本工具单元轻松地链接、过滤、组合他们。
+](https://github.com/ReactiveCocoa/ReactiveCocoa)  则定义了事件的标准接口，并且可以任意的使用一组基本工具单元轻松地链接、过滤、组合他们。
 
 **1.1 特点**
 
