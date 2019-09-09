@@ -455,6 +455,668 @@ ReactiveCocoa 得主要目标是使您得代码更清晰，更容易理解。就
 
 
 
+----
+
+
+## 第二部分
+
+[ReactiveCocoa](https://github.com/ReactiveCocoa/ReactiveCocoa) 是一个框架，允许您在 iOS 应用中使用函数式响应式编程（FRP）技术。在上一部分中，您学习两如何使用发出事件流的信号替换标准操作和事件处理逻辑。您还学习两如何转换、分割和组合这些信号。
+
+在本系列的第二部分中，您将了解 ReactiveCocoa 的更高级功能。包括：
+
+- 另外两种事件类型：`error` 和 `completed`
+- Throttling
+- Threading
+- Continuations
+- 等等
+
+还等什么，让我们开始吧！
+
+**1.0 Twitter Instant**
+
+您将在本此教程中开发名为**Twitter Instant**的应用程序（以*[Google Instant](http://www.google.co.uk/instant/)*概念为模型），这是一个 Twitter 搜索的应用程序，您可以通过输入文本信息实时更新搜索结果。
+
+此应用程序的[入门项目](https://koenig-media.raywenderlich.com/uploads/2014/01/TwitterInstant-Starter2.zip)包括了基本用户界面和一些基础代码。和第一部分的教程一样，需要您使用[CocoaPods](http://cocoapods.org/)来获取 ReactiveCocoa 框架将其进行集成，集成过程参考上一部分。
+
+运行项目，您将看到一下界面：
+
+![项目界面](https://upload-images.jianshu.io/upload_images/1167313-66681ef9d99755a4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+这是一个非常简单的基于拆分视图控制器`UISplitViewController`的应用程序。左侧面板是** RWSearchFormViewController**，它通过故事版添加了一些UI控件，以及链接到了搜索文本字段，右侧面板是** RWSearchResultsViewController**，它当前只是一个`UITableViewController`的子类，用来展示结果数据。
+
+**2.0 验证搜索文本**
+
+您要做的第一件事就是验证搜索文本以确保其长度大于两个字符。如果你完成了本系列的第一部分，这是一件非常容易做的事情。
+
+在 ** RWSearchFormViewController.m** 中的 `viewDidLoad` 方法添加一下代码：
+
+```
+-(BOOL)isValidSearchText:(NSString*)text{
+    return text.length > 2;
+}
+```
+
+该方法目前只是确保搜索字符超过两个字符，这里您或许会问：“这么简单的逻辑，为什么还需要单独方法？”
+
+的确，当前的逻辑很简单，但是如果将来需要更加复杂的处理呢？使用上面的示例，您只需要 在一个地方进行更改即可，此外，上面的代码是您的代码更具表现力，它表明您检查字符长度的原因。我们都应该遵循良好的编码习惯，不是吗？
+
+在文件的顶部导入 ReactiveCocoa:
+
+```
+#import <ReactiveCocoa/ReactiveCocoa.h>
+```
+
+并添加以下内容：
+
+```
+[[self.searchText.rac_textSignal
+  map:^id(NSString* text) {
+      return [self isValidSearchText:text] ? UIColor.whiteColor : UIColor.yellowColor;
+  }]
+ subscribeNext:^(UIColor* color) {
+     self.searchText.backgroundColor = color;
+ }];
+```
+
+由上一部分的教程可知道，上述代码使用搜索文本字段的文本信号，将其`map`转换为对应的背景色，然后将其应用于搜索框的背景色。运行测试效果如下，当搜索框输入的文本太短，会显示黄色背景的无效提示。
+
+![输入测试的结果](https://upload-images.jianshu.io/upload_images/1167313-1af5e36604c2f146.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+将业务流程进行图形可视化，这个简单的响应式管道看起来就如下图：
+
+![业务可视化](https://upload-images.jianshu.io/upload_images/1167313-c1b45762c3a88233.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+在搜索框发生更改时，`rac_textSignal` 会发生**next**事件并包含当前文本值，`map`将文本值转换为颜色信号继续发生**next**事件，而`subscribeNext:`采用此值并将应用于文本框的背景色。
+
+**2.1 管道格式化**
+
+这里需要插一下（反正又不会怀孕），提一个有趣的格式化优化，在进行管道组装时，避免不了一直链接下去，这让代码变得非常的长，阅读起来非常的优雅。ReactiveCocoa 通常的约定是将每一步操作放在新的一行，并垂直对其多有的步骤，就相SwiftUI的那样。
+
+如下图所示，您可以看到一个复杂的示例的对齐方式，来自上一个教程：
+
+![代码格式化](https://upload-images.jianshu.io/upload_images/1167313-65ae163ca9538719.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+这使您可以非常轻松地查看构成管道的每一个操作，另外，最小化每一个块中的代码量：任何超过几行的内容都应该分解为私有方法。这个目的是为了让管道结构看起来更清晰，不臃肿，因为数据流即代表您的业务流程。
+
+**2.2 内存管理**
+
+查看您当前在** TwitterInstant**应用程序的代码，您是否想知道您刚刚创建的管道是如何保留的？因为它没有分配给任何变量或属性，它的引用计数不会增加。
+
+ReactiveCocoa 的设计目标之一就是允许管道可以匿名形成这样的编程风格，这让你所有的响应式代码看起来非常的直观。
+
+为了支持这样的模型， ReactiveCocoa 需要维护并保留自己的全局信号集。如果它有一个或者多个订阅者，那么信号有效，如果删除了所有的订阅者，则可以取消分配信号。有关ReactiveCocoa如何管理此过程的更多信息，请参考[内存管理](https://github.com/ReactiveCocoa/ReactiveCocoa/blob/master/Documentation/MemoryManagement.md)文档。
+
+上面提到一个问题：你如何取消订阅号？在发出一个**completed**或**error**事件后，订阅者将自动删除本身，您也可以通过`RACDisposable`手动移除。
+
+`RACSignal`所有返回的实例`RACDisposable`允许您通过`dispose`方法手动删除订阅者：
+
+```
+RACSignal* backgroundColorSignal =
+[self.searchText.rac_textSignal
+  map:^id(NSString* text) {
+      return [self isValidSearchText:text] ? UIColor.whiteColor : UIColor.yellowColor;
+  }];
+
+RACDisposable* subscription =
+ [backgroundColorSignal subscribeNext:^(UIColor* color) {
+     self.searchText.backgroundColor = color;
+ }];
+
+// 在未来的某个时刻
+[subscription dispose];
+```
+
+在实际使用时，您可能不会这样操作，但是手动取消订阅者这点还是值得去了解的。
+
+> 如果你创建一个管道但是没有订阅它，管道永远不会执行，这包括任何的额外操作，如`doNext:`块
+
+**2.3 避免循环引用**
+
+虽然 ReactiveCocoa 在幕后做了很多事情，这并不意味着你无须过多担心信号的内存管理，你只需要考虑一个与内存相关的重要问题。
+
+回顾一下您刚添加的代码：
+
+```
+[[self.searchText.rac_textSignal
+  map:^id(NSString* text) {
+      return [self isValidSearchText:text] ? UIColor.whiteColor : UIColor.yellowColor;
+  }]
+ subscribeNext:^(UIColor* color) {
+     self.searchText.backgroundColor = color;
+ }];
+```
+
+在`subscribeNext:`块中，`self`获取了文本框的引用，块捕获并保留了范围内的值，因此如果`self`和此信号之间存在强引用，就会导致循环引用的问题。循环引用是否重要取决于`self`对象的生命周期，如果它的生命周期和应用程序的持续时间一致，就像现在的情况，那它并不重要，但是在开发复杂的应用程序过程中，大部分的`self`都是需要避免循环引用的。
+
+为了解决上述问题，使用[Blocks](https://developer.apple.com/library/ios/documentation/cocoa/conceptual/ProgrammingWithObjectiveC/WorkingwithBlocks/WorkingwithBlocks.html#//apple_ref/doc/uid/TP40011210-CH8-SW16)的Apple文档建议捕获弱引用`self`，就像下面这样：
+
+```
+__weak RWSearchFormViewController* bself = self;// 捕获弱引用
+[[self.searchText.rac_textSignal
+  map:^id(NSString* text) {
+      return [self isValidSearchText:text] ? UIColor.whiteColor : UIColor.yellowColor;
+  }]
+ subscribeNext:^(UIColor* color) {
+     bself.searchText.backgroundColor = color;
+ }];
+```
+
+在上面的代码`bself`引用了`self`，但是其已经被标记为`__weak`使其弱引用。但是这看起来不太优雅。
+
+ReactiveCocoa 框架提供了一个宏，用来代替上面的代码，您可以导入下面代码来使用：
+
+```
+#import <ReactiveCocoa/RACEXTScope.h>
+```
+
+然后使用下面代码替换上面的代码：
+
+```
+@weakify(self)
+[[self.searchText.rac_textSignal
+  map:^id(NSString* text) {
+      return [self isValidSearchText:text] ? UIColor.whiteColor : UIColor.yellowColor;
+  }]
+ subscribeNext:^(UIColor* color) {
+     @strongify(self)
+     self.searchText.backgroundColor = color;
+ }];
+```
+
+上面的`@weakify`和`@strongify`语句是在[Extended Objective-C](https://github.com/jspahrsummers/libextobjc)库中定义的宏，它们也包含在ReactiveCocoa中。
+
+> 如果你有兴趣想知道`@weakify`和`@strongify`实际上做了什么，Xcode中选择Product -> Perform Action -> Preprocess “RWSearchForViewController”。这将预处理视图控制器，展开多有宏并允许您查看最终输出。
+
+最后要注意的是，在块中使用实例变量（如_name）时要小心，这些也同样会导致块捕获强引用`self`。如果代码上导致此问题，您可打开编译器警告来提醒您。在项目的构建设置中搜索**retain**查找：
+
+![retain](https://upload-images.jianshu.io/upload_images/1167313-70a575739d4c9f82.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+> 在上一个教程中，敏锐的读者肯定主要到`subscribeNext:`可以使用`RAC`宏来消除当前管道中块的引用。如果您发现了这一点，那么就作出改变并给自己一个闪亮的星星✨！
+
+好了，一些优化和注意事项以完成，下面接着为项目添加一些真正的功能！
+
+**3.0 访问Twitter**
+
+您将使用社交框架来允许应用程序可以搜索推文。在添加代码之前，您需要在运行此应用程序的模拟器或者iPad中登录您的Twitter账号：
+
+![登录Twitter账号](https://upload-images.jianshu.io/upload_images/1167313-858bd7631337cd07.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+使用cocoaPods导入所需要的社交框架，接着在** RWSearchFormViewController**中，导入文件头：
+
+```
+#import <Accounts / Accounts.h>
+#import <Social / Social.h>
+```
+
+在导入的下方添加以下几个枚举和常量：
+
+```
+typedef NS_ENUM(NSInteger, RWTwitterInstantError){
+    RWTwitterInstantErrorAccessDenied,
+    RWTwitterInstantErrorNoTwitterAccounts,
+    RWTwitterInstantErrorInvalidResponse
+};
+
+static  NSString * const RWTwitterInstantDomain = @"TwitterInstant";
+```
+
+在同一文件的下方，声明以下属性：
+
+```
+@property (strong, nonatomic) ACAccountStore * accountStore;
+@property (strong, nonatomic) ACAccountType * twitterAccountType;
+```
+
+在`viewDidLoad `中添加：
+
+```
+self.accountStore = [[ACAccountStore alloc] init];
+self.twitterAccountType = [self.accountStore
+  accountTypeWithAccountTypeIdentifier：ACAccountTypeIdentifierTwitter];
+```
+
+这将创建账户存储和Twitter账号标识符。
+
+应用请求访问社交媒体账户是一个异步操作，因此我们需要使用一个异步信号将其包装起来，以便之后使用它！
+
+```
+-(RACSignal*)requestAccessToTwitterSignal{
+    // 定义错误
+    NSError* accessError = [NSError errorWithDomain:RWTwitterInstantDomain code:RWTwitterInstantErrorAccessDenied userInfo:nil];
+    // 创建信号
+    @weakify(self)
+    return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        // 访问twitter
+        @strongify(self)
+        [self.accountStore requestAccessToAccountsWithType:self.twitterAccountType options:nil completion:^(BOOL granted, NSError *error) {
+             // 处理response
+             if (!granted) {
+                 [subscriber sendError:accessError];//访问被拒绝，发出错误事件
+             } else {
+                 [subscriber sendNext:nil];
+                 [subscriber sendCompleted];
+             }
+         }];
+        return nil;
+    }];
+}
+```
+
+上述方法执行了以下操作：
+
+1. 定义了一个错误，如果用户被拒绝访问，则会发送该错误；
+2. 使用`createSignal`创建了一个实例`RACSignal`;
+3. 通过请求访问Twitter
+4. 在用户被授予或拒绝访问之后，发送对应的信号事件。如果用户被授予访问，则发送**next**事件，然后发送完成。如果用户被拒绝访问，则会发送**error**事件。
+
+在信号的生命周期内，它可以不发出任何事件，一个或多个事件，然后是**completed**事件和**error**事件。
+
+现在，我们来使用此信号：
+
+```
+[[self requestAccessToTwitterSignal]
+ subscribeNext:^(id x) {
+     NSLog(@"授予访问权限");
+ } error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+运行应用程序，您将看到以下内容：
+
+![运行结果](https://upload-images.jianshu.io/upload_images/1167313-0f417d9b97f74734.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+如果点击“ok”，则`subscribeNext:`块中的日志消息会出现在控制台中，相反，则会执行错误块中的消息。
+
+社交框架会记住你选择的决定，然后需要您重新输入您的Twitter账号密码。
+
+**4.0 链接信号**
+
+一旦用户被授予访问其Twitter账户的权限，应用程序需要持续监视搜索文本框的内容，以便查询twitter。
+
+应用程序需要等待访问Twitter的信号发出其已完成的事件，然后订阅文本框字段的信号，这里涉及到不同信号的顺序链接的问题，ReactiveCocoa 非常优雅地处理这个问题。
+
+```
+[[[self requestAccessToTwitterSignal]
+  then:^RACSignal *{
+      @strongify(self)
+      return self.searchText.rac_textSignal;
+  }]
+ subscribeNext:^(id x) {
+     NSLog(@"%@",x);
+ } error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+`then` 方法可以等待`RACSignal`发出**completed**事件，然后订阅其block参数返回的信号，这有效地控制从一个信号传递下一个信号。
+
+> 您之前对`self`已经进行来弱引用，因此这里只添加来一个`@strongify(self)`。
+
+该`then`方法会传递**error**事件，因此最终`subscribeNext:error:`块仍然接收初始化访问请求发出的错误。
+
+接下来，使用`filter`向管道添加过滤条件以删除任何无效的搜索字符串：
+
+```
+[[[[self requestAccessToTwitterSignal]
+  then:^RACSignal *{
+      @strongify(self)
+      return self.searchText.rac_textSignal;
+  }]
+  filter:^BOOL(NSString* text) {
+      @strongify(self)
+      return [self isValidSearchText:text];
+  }]
+ subscribeNext:^(id x) {
+     NSLog(@"%@",x);
+ }
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+使用图形来可视化当前应用程序的管道组成：
+
+![当前管道](https://upload-images.jianshu.io/upload_images/1167313-5eb1ab1eb524d2f7.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+应用程序管道从`requestAccessToTwitterSignal`开始，然后切换到`rac_textSignal`，通过一个过滤器，最终到达订阅块。不仅如此，您还可以看到第一步发生的任何错误事件都会被同一个`subscribeNext:error:`块占用。
+
+**5.0 搜索Twitter**
+
+Social Framework 用来访问搜索Twitter，然而，该框架不应是响应式的，下一步要做的就是将所需的API方法调用包装在一个信号中。
+
+首先使用文本字段包装为一个请求对象：
+
+```
+- (SLRequest *)requestforTwitterSearchWithText:(NSString *)text {
+    NSURL *url = [NSURL URLWithString:@"https://api.twitter.com/1.1/search/tweets.json"];
+    NSDictionary *params = @{@"q" : text};
+    SLRequest *request =  [SLRequest requestForServiceType:SLServiceTypeTwitter
+                                             requestMethod:SLRequestMethodGET
+                                                       URL:url
+                                                parameters:params];
+    return request;
+}
+```
+
+接着，我们将使用此请求生成信号：
+
+```
+- (RACSignal *)signalForSearchWithText:(NSString *)text {
+    // 定义错误
+    NSError *noAccountsError = [NSError errorWithDomain:RWTwitterInstantDomain
+                                                   code:RWTwitterInstantErrorNoTwitterAccounts
+                                               userInfo:nil];
+    NSError *invalidResponseError = [NSError errorWithDomain:RWTwitterInstantDomain
+                                                        code:RWTwitterInstantErrorInvalidResponse
+                                                    userInfo:nil];
+    
+    // 创建信号
+    @weakify(self)
+    return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        @strongify(self);
+        // 创建请求
+        SLRequest *request = [self requestforTwitterSearchWithText:text];
+        // 提供推特账号
+        NSArray *twitterAccounts = [self.accountStore
+                                    accountsWithAccountType:self.twitterAccountType];
+        if (twitterAccounts.count == 0) {
+            [subscriber sendError:noAccountsError];
+        } else {
+            [request setAccount:[twitterAccounts lastObject]];
+            // 开始请求
+            [request performRequestWithHandler: ^(NSData *responseData,
+                                                  NSHTTPURLResponse *urlResponse, NSError *error) {
+                if (urlResponse.statusCode == 200) {
+                    // 成功，解析响应
+                    NSDictionary *timelineData =
+                    [NSJSONSerialization JSONObjectWithData:responseData
+                                                    options:NSJSONReadingAllowFragments
+                                                      error:nil];
+                    [subscriber sendNext:timelineData];
+                    [subscriber sendCompleted];
+                }
+                else {
+                    // 错误，发送错误
+                    [subscriber sendError:invalidResponseError];
+                }
+            }];
+        }
+        return nil;
+    }];
+}
+```
+
+有关请求的信号已经创建完成，现在来使用这个新信号吧！
+
+在本教程的第一部分，您学习了如何使用`flattenMap`将每个**next**事件映射到随后订阅的新信号，现在我们再次需要使用它了。
+
+```
+[[[[[self requestAccessToTwitterSignal]
+  then:^RACSignal *{
+      @strongify(self)
+      return self.searchText.rac_textSignal;
+  }]
+  filter:^BOOL(NSString* text) {
+      @strongify(self)
+      return [self isValidSearchText:text];
+  }]
+ flattenMap:^RACStream *(NSString* text) {
+     return [self signalForSearchWithText:text];
+ }]
+ subscribeNext:^(id x) {
+     NSLog(@"%@",x);
+ }
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+运行应用程序，然后在搜索框中输入一些文本。一旦文本长度超过两个字符时，控制台可以看到Twitter搜索的结果。
+
+以下仅显示您将看到的数据类型的片段：
+
+```
+TwitterInstant[40308:5403] {
+    "search_metadata" =     {
+        "completed_in" = "0.019";
+        count = 15;
+        "max_id" = 419735546840117248;
+        "max_id_str" = 419735546840117248;
+        "next_results" = "?max_id=419734921599787007&q=asd&include_entities=1";
+        query = asd;
+        "refresh_url" = "?since_id=419735546840117248&q=asd&include_entities=1";
+        "since_id" = 0;
+        "since_id_str" = 0;
+    };
+    statuses =     (
+                {
+            contributors = "<null>";
+            coordinates = "<null>";
+            "created_at" = "Sun Jan 05 07:42:07 +0000 2014";
+            entities =             {
+                hashtags = ...
+```
+
+>  - 同样是信号中的信号，`then:`的作用是链接到新的信号，新信号和之前的信号可以没有订阅，`flattenMap:`则将每个**next**事件映射到随后订阅的中，例如接收了用户输入的文本信息。
+> - 关于**error**事件：一旦信号发出错误，它就会直接进入错误处理块，而不会继续执行管道中接下来的订阅块
+> - 当Twitter请求返回错误时，请继续执行其他异常流程。
+
+**6.0 线程**
+
+在您急不可耐的想要将Twitter搜索到的JSON显示到界面上之前，有些事情你需要知道：ReactiveCocoa 将管道中的每一个操作元素都执行在不同的线程上，而我们更新UI都需要切换到主线程。那么我们该如何更新UI呢？典型的方法是使用操作队列等，但是ReactiveCocoa有一个更简单的方法来解决切换线程的问题。
+
+```
+[[[[[[self requestAccessToTwitterSignal]
+  then:^RACSignal *{
+      @strongify(self)
+      return self.searchText.rac_textSignal;
+  }]
+  filter:^BOOL(NSString* text) {
+      @strongify(self)
+      return [self isValidSearchText:text];
+  }]
+ flattenMap:^RACStream *(NSString* text) {
+     return [self signalForSearchWithText:text];
+ }]
+ deliverOn:RACScheduler.mainThreadScheduler]
+ subscribeNext:^(id x) {
+     NSLog(@"%@",x);
+ }
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+这样，您就可以轻松的在主线中更新UI了。
+
+> 如果您查看`RACScheduler`类，您将看到有很多选项可用于具有不同优先级的线程，又或者在管道中添加延迟。
+
+**6.1 更新UI**
+
+如果你打开`RWSearchResultsViewController.h`你会看到它已经有一个`displayTweets:`方法，这可以让右侧视图控制器呈现提供的推文数组。实现非常简单，它只是一个标准`UITableView`数据源，该`displayTweets:`方法的单个参数需要`NSArray`包含`RWTweet`实例。
+
+事件到达`subscibeNext:error:`的数据是一个字典，如何解析这个字典呢？该字典中包含了一个key为`statuses`的数组，这是微博数组，也是一个字典实例。
+
+正好`RWTweet`已经有了一个类方法`tweetWithStatus:`来获取字典中数据，那么，您所需要做的就是编写一个for循环，然后迭代数组，为每个推文创建一个`RWTweet`实例。
+
+但是，你无需这样做，这里推荐一个更优雅的数据转换库[LinqToObjectiveC](https://github.com/ColinEberhardt/LinqToObjectiveC) 。现在更新Podfile文件:
+
+```
+pod'LinqToObjectiveC'，'2.0.0'
+```
+
+执行更新操作，将框架拉取下来。
+
+打开`RWSearchFormViewController.m`并将以下导入添加到文件的顶部：
+
+```
+#import “RWTweet.h”
+#import “NSArray + LinqExtensions.h”
+```
+
+`NSArray+LinqExtensions.h`允许您变换、排序、分组和过滤其数据。
+
+使用此API，更新当前管道：
+
+```
+[[[[[[self requestAccessToTwitterSignal]
+  then:^RACSignal *{
+      @strongify(self)
+      return self.searchText.rac_textSignal;
+  }]
+  filter:^BOOL(NSString* text) {
+      @strongify(self)
+      return [self isValidSearchText:text];
+  }]
+ flattenMap:^RACStream *(NSString* text) {
+     return [self signalForSearchWithText:text];
+ }]
+ deliverOn:RACScheduler.mainThreadScheduler]
+ subscribeNext:^(NSDictionary * jsonSearchResult) {
+     NSArray* statuses = jsonSearchResult[@"status"];
+     NSArray* tweets = [statuses linq_select:^id（id tweet）{
+         return [RWTweet tweetWithStatus:tweet];
+     }];
+     [self.resultsViewController displayTweets:tweets];
+ }
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+该`subscribeNext:`块首先获取到推文的数组，方法`linq_select`将每个数组元素转换生成`RWTweet`实例。最后将转换后的推文发送到结果视图控制器。
+
+最终看到UI中出现的推文：
+
+![最终结果](https://upload-images.jianshu.io/upload_images/1167313-7f0f048e5c83f645.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+**6.2 图像异步加载**
+
+可能你已经注意到每条推文的左侧都又一个间隙，实际上左边是用户的头像。
+
+`RWTweet`中已经有了一个`profileImageUrl`属性，用户存储图像合适的url地址。为了能够使表格平滑的滚动，您需要确保在主线程上不执行耗时操作，如此处图像的获取。通常，您可以使用GCD和NSOprationQueue来实现，但是，为什么不"问问"神奇的ReactiveCocoa呢？
+
+```
+-(RACSignal*)signalForLoadingImage:(NSString*)imageUrl{
+    RACScheduler* scheduler = [RACScheduler schedulerWithPriority:RACSchedulerPriorityBackground];
+    return [[RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        NSData* data = [NSData dataWithContentsOfURL:[NSURL URLWithString:imageUrl]];
+        UIImage* image = [UIImage imageWithData:data];
+        [subscriber sendNext:image];
+        return nil;
+    }] subscribeOn:scheduler];
+}
+```
+
+上述方法首先获得后台调度程序，因为您希望此信号在主线程以外的线程上执行。接着，它会创建一个信号，用于下载图像数据并将UIImage传递出去，最后使用`subscribeOn:`确保信号在给定的调度程序上执行。
+
+现在在代理方法`tableView:CellForRowAtIndex:`中添加图像的获取：
+
+```
+cell.twitterAvatarView.image = nil ;
+
+[[[ self signalForLoadingImage:tweet.profileImageUrl]
+  deliverOn:[RACScheduler mainThreadScheduler]]
+  subscribeNext:^(UIImage * image){
+   cell.twitterAvatarView.image = image;
+  }];
+
+```
+
+`deliveOn:`确保您**next**事件在指定线程上执行。
+
+![正确显示头像](https://upload-images.jianshu.io/upload_images/1167313-0df4b635060dd076.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+**7.0 Throttling 节流**
+
+您可能已经注意到，在每次输入或者删除字符时都会执行搜索功能，这可能导致应用程序在每秒都会执行多次搜索，这显然是不理想的：用户在输入字符未结束时，搜索的结果通常并不是用户想要，而且会被下一次的搜索给丢弃。其次，这样还会消耗用户大量的流量以及给服务器造成压力。
+
+更好的一种做法就是限制信号的频率，这里使用时间来限制，例如500毫秒内保持不变时再执行搜索。
+
+```
+[[[[[[[self requestAccessToTwitterSignal]
+      then:^RACSignal *{
+          @strongify(self)
+          return self.searchText.rac_textSignal;
+      }]
+     filter:^BOOL(NSString* text) {
+         @strongify(self)
+         return [self isValidSearchText:text];
+     }]
+    throttle:0.5]
+   flattenMap:^RACStream *(NSString* text) {
+     return [self signalForSearchWithText:text];
+   }]
+  deliverOn:RACScheduler.mainThreadScheduler]
+ subscribeNext:^(NSDictionary * jsonSearchResult) {
+     NSArray* statuses = jsonSearchResult[@"status"];
+     NSArray* tweets = [statuses linq_select:^id（id tweet）{
+         return [RWTweet tweetWithStatus:tweet];
+     }];
+     [self.resultsViewController displayTweets:tweets];
+ }
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+如果在给定的时间段未收到另外一个**next**事件，则`throttle`操作才会发送**next**事件。
+
+运行应用程序，您在输入500毫秒之后，搜索结果才会更新，这让用户感觉好了很多不是吗？
+
+[最终的项目](https://koenig-media.raywenderlich.com/uploads/2014/01/TwitterInstant-Final.zip)
+
+**8.0 总结**
+
+来欣赏以下根据业务需求拼装的管道最终样子：
+
+```
+@weakify(self)
+// 1.权限请求信号
+[[[[[[[self requestAccessToTwitterSignal]
+      // 2.链接新的文本信号
+      then:^RACSignal *{
+          @strongify(self)
+          return self.searchText.rac_textSignal;
+      }]
+     // 3.过滤验证文本数据
+     filter:^BOOL(NSString* text) {
+         @strongify(self)
+         return [self isValidSearchText:text];
+     }]
+    // 时间限制流
+    throttle:0.5]
+   // 4.Twiteer搜索信号
+   flattenMap:^RACStream *(NSString* text) {
+     return [self signalForSearchWithText:text];
+   }]
+  // 切换线程
+  deliverOn:RACScheduler.mainThreadScheduler]
+ // 5.处理搜索结果
+ subscribeNext:^(NSDictionary * jsonSearchResult) {
+     NSArray* statuses = jsonSearchResult[@"status"];
+     NSArray* tweets = [statuses linq_select:^id(id tweet){
+         return [RWTweet tweetWithStatus:tweet];
+     }];
+     [self.resultsViewController displayTweets:tweets];
+ }
+ // 发生错误时
+ error:^(NSError *error) {
+     NSLog(@"发生错误：%@",error);
+ }];
+```
+
+在这里你可以看到完成的业务流程，即数据流向。
+
+![管道图例](https://upload-images.jianshu.io/upload_images/1167313-474ac8d344b1f03a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+这是一个相当复杂的数据流，所有这些都简洁地表达为单个响应流水线。你能想象这个业务流程使用非响应技术去实现会有多复杂吗？实现完成之后想要看到数据流会有多困难，不是吗？现在你不必再走原来的那条路了！现在你知道ReactiveCocoa有多棒了！
+
+> 值得一提的是，ReactiveCocoa 可以应用在MVVM设计模式上，它可以更好地分离应用程序逻辑和视图逻辑。
+
+
+
 
 
 
